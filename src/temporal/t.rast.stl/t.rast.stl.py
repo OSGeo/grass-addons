@@ -41,9 +41,46 @@
 # %end
 
 # %option G_OPT_M_COORDS
-# % required: yes
+# % required: no
 # % label: Point coordinates (east,north)
-# % description: Comma separated pair of map coordinates of the point to extract. In the GUI (launched from a Map Display) the value can be filled by clicking in the display.
+# % description: Comma separated pair of map coordinates of the point to extract. In the GUI (launched from a Map Display) the value can be filled by clicking in the display. Mutually exclusive with 'zone' and 'raster'.
+# % guisection: Input
+# %end
+
+# %option G_OPT_V_INPUT
+# % key: zone
+# % required: no
+# % label: Vector map defining the sampling area
+# % description: Vector map (points, lines or polygons) defining the sampling area. All features in the map are rasterized and pooled into a single sample; use v.extract beforehand to pre-select a subset of features. Mutually exclusive with 'coordinates' and 'raster'.
+# % guisection: Input
+# %end
+
+# %option G_OPT_R_INPUT
+# % key: raster
+# % required: no
+# % label: Raster map defining the sampling area
+# % description: Raster map whose non-null cells define the sampling area; cell values are ignored. All non-null cells are pooled into a single sample. Mutually exclusive with 'coordinates' and 'zone'.
+# % guisection: Input
+# %end
+
+# %option
+# % key: statistic
+# % type: string
+# % label: Pixel aggregation statistic
+# % description: Statistic used to summarize the pixels within 'zone'/'raster' at each timestep. 'mean', 'min' and 'max' use a single, cheap t.rast.univar call. 'median' and 'percentile' are more robust to outlier/contaminated pixels but require t.rast.univar's extended-statistics mode, which sorts all cell values in memory for each map; this is a real memory cost on very large rasters.
+# % options: mean,median,min,max,percentile
+# % answer: mean
+# % required: no
+# % guisection: Input
+# %end
+
+# %option
+# % key: percentile_value
+# % type: double
+# % label: Percentile to use as the statistic
+# % description: Percentile (0-100) summarizing the pixels within 'zone'/'raster' at each timestep. Only used when 'statistic' is 'percentile'.
+# % options: 0-100
+# % required: no
 # % guisection: Input
 # %end
 
@@ -81,6 +118,24 @@
 # % type: integer
 # % label: Interpolation order
 # % description: Order for the spline/polynomial interpolation methods (ignored otherwise).
+# % required: no
+# % guisection: Regularization
+# %end
+
+# %option
+# % key: temporal_outliers
+# % type: string
+# % label: Temporal-outlier filter for 'strds'
+# % description: 'threshold,window' flags and excludes isolated, transient excursions before the analysis, tracking a running peak (or trough) and following the signal away from it, the same running-extremum approach t.rast.event uses to detect disturbance/recovery events. A descent (or ascent) is confirmed, and its entire span excluded, once it has moved at least 'threshold' away from that running reference (in the data's own units, e.g. 0.3 NDVI units) and the series is then seen to come back close to the reference again, within 'window' of leaving it (calendar days for absolute time, time steps for relative time) -- as opposed to a genuine, sustained change, which is left untouched. The removed values are dropped before STL/trend, filled in like any other gap, and still marked on the Observed panel. See the manual for the full rule.
+# % required: no
+# % guisection: Regularization
+# %end
+
+# %option
+# % key: temporal_outliers2
+# % type: string
+# % label: Temporal-outlier filter for 'strds2'
+# % description: Same as 'temporal_outliers', applied to 'strds2'.
 # % required: no
 # % guisection: Regularization
 # %end
@@ -256,7 +311,144 @@
 # % options: none,0.1,0.25,0.5,1
 # % answer: none
 # % required: no
-# % guisection: STL
+# % guisection: Trend line
+# %end
+
+# %option
+# % key: breakpoints
+# % type: string
+# % label: Trend regression breakpoints
+# % description: Date(s) (absolute-time strds) or time step(s) (relative-time strds) splitting the trend regression into separate segments, e.g. to report the slope before and after a known change rather than one slope that averages over it. Each value starts a new segment; the series' own start and end always count as the outer segment boundaries. Comma separated for multiple breakpoints. Only the OLS/Theil-Sen lines (-o/-s) are fit per segment; the monotone GAM curve (-g), if requested, is still fit on the whole series. 'trend_trim' only trims the series' true start/end, not an interior breakpoint (which is not a LOESS edge). Combine with 'vlines' (same dates/steps) to also mark the breakpoints on the plot.
+# % multiple: yes
+# % required: no
+# % guisection: Trend line
+# %end
+
+# %option
+# % key: plots
+# % type: string
+# % label: Panels to include in the figure
+# % description: Which decomposition panels to draw, as a comma separated subset of observed, trend, seasonal and residual. Omitted panels are left out of the figure; at least one panel is required. The trend regression lines are only drawn when the trend panel is included.
+# % options: observed,trend,seasonal,residual
+# % multiple: yes
+# % answer: observed,trend,seasonal,residual
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Name of a built-in Matplotlib style (see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html), or the path to a custom .mplstyle file (see https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style).
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: fontsize
+# % type: double
+# % label: Font size
+# % description: Base font size of plot text. Defaults to the Matplotlib/style default.
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: line_width
+# % type: double
+# % label: Line width
+# % description: Width of the series lines. Defaults to the Matplotlib default.
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %flag
+# % key: y
+# % label: Use a common y-axis scale for both datasets
+# % description: When two datasets are plotted, force both to share the same y-axis range on each panel instead of giving 'strds2' its own (right) axis. Only meaningful with strds2; most useful when the two datasets are in comparable units.
+# % guisection: Plotting
+# %end
+
+# %flag
+# % key: d
+# % label: Show pixel-value spread band
+# % description: Shade a band around the Observed series showing the spread of pixel values within 'zone'/'raster' at each timestep: +/-1 standard deviation for the 'mean' statistic, or the interquartile range (25th-75th percentile) for the 'median' statistic. Only valid with 'statistic=mean' or 'statistic=median'; only meaningful with 'zone' or 'raster'.
+# % guisection: Plotting
+# %end
+
+# %flag
+# % key: e
+# % label: Hide outlier markers
+# % description: Do not draw the markers for values excluded by 'temporal_outliers'/'temporal_outliers2' on the Observed panel (no effect if neither option is set, or none were excluded). The Observed panel's y-axis is then left to autoscale to the plotted (gap-filled) series only, instead of being stretched to also fit the hidden outlier values.
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: min_pixels
+# % type: integer
+# % label: Minimum pixel count for the spread band
+# % description: At timesteps where fewer than this many non-null pixels contributed to the 'zone'/'raster' statistic, the spread band (-d) is left out and interpolated like any other gap, instead of plotting it. A standard deviation or interquartile range estimated from very few pixels is unreliable and can spike far beyond the genuine spread, most visibly on near-total-cloud timesteps where only a handful of pixels survive. Only meaningful with -d.
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: seasonal_envelope
+# % type: string
+# % label: Seasonal amplitude envelope percentile
+# % description: Draw a rolling envelope of the seasonal component (a centered window one seasonal period wide) on the Seasonal panel, showing how the seasonal amplitude changes over time. The value is the fraction trimmed from each end of the window before taking the envelope, e.g. '0.1' uses the 10th/90th percentile instead of the min/max, to avoid outliers dominating the envelope; '0' uses the plain min/max. Independent of 'coordinates'/'zone'/'raster'. Unset disables the envelope.
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option G_OPT_CN
+# % key: color
+# % type: string
+# % label: Line color for the first dataset
+# % description: Color of the 'strds' series lines. Accepts a GRASS color name (e.g. 'blue'), an R:G:B triplet (e.g. '0:0:255'), or any matplotlib color such as a hex code ('#1f77b4') or 'tab:' name. The trend-regression lines for this dataset are drawn in a matching darker/lighter family. Defaults to the Matplotlib default.
+# % required: no
+# % answer:
+# % guisection: Plotting
+# %end
+
+# %option G_OPT_CN
+# % key: color2
+# % type: string
+# % label: Line color for the second dataset
+# % description: Color of the 'strds2' series lines. Accepts a GRASS color name, an R:G:B triplet, or any matplotlib color (hex code or 'tab:' name). Used only when strds2 is given. Its trend-regression lines use a matching family. Defaults to the Matplotlib default.
+# % required: no
+# % answer:
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: vlines
+# % type: string
+# % label: Vertical reference line date(s)
+# % description: Date(s) (absolute-time strds, e.g. '2019-08-15') or time step(s) (relative-time strds, integer) at which to draw a dashed vertical reference line across all panels, e.g. to mark a known event. Comma separated for multiple lines.
+# % multiple: yes
+# % required: no
+# % guisection: Plotting
+# %end
+
+# %option
+# % key: vlines_labels
+# % type: string
+# % label: Vertical reference line label(s)
+# % description: Optional label(s) for the 'vlines' dates, in the same order. When given, the number of labels must match the number of 'vlines' values. Shown rotated above the top panel.
+# % multiple: yes
+# % required: no
+# % guisection: Plotting
 # %end
 
 # %option G_OPT_F_OUTPUT
@@ -312,119 +504,99 @@
 # % guisection: Output
 # %end
 
-# %option
-# % key: style
-# % type: string
-# % label: Matplotlib style
-# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
-# % required: no
-# % guisection: Output
-# %end
-
-# %option
-# % key: fontsize
-# % type: double
-# % label: Font size
-# % description: Base font size of plot text. Defaults to the Matplotlib/style default.
-# % required: no
-# % guisection: Output
-# %end
-
-# %option
-# % key: line_width
-# % type: double
-# % label: Line width
-# % description: Width of the series lines. Defaults to the Matplotlib default.
-# % required: no
-# % guisection: Output
-# %end
-
-# %option
-# % key: title
-# % type: string
-# % label: Plot title
-# % description: The title of the plot. If left empty, no title is drawn.
-# % required: no
-# % guisection: Aesthetics
-# %end
-
-# %flag
-# % key: y
-# % label: Use a common y-axis scale for both datasets
-# % description: When two datasets are plotted, force both to share the same y-axis range on each panel instead of giving 'strds2' its own (right) axis. Only meaningful with strds2; most useful when the two datasets are in comparable units.
-# % guisection: Optional
-# %end
-
-# %option G_OPT_CN
-# % key: color
-# % type: string
-# % label: Line color for the first dataset
-# % description: Color of the 'strds' series lines. Accepts a GRASS color name (e.g. 'blue'), an R:G:B triplet (e.g. '0:0:255'), or any matplotlib color such as a hex code ('#1f77b4') or 'tab:' name. The trend-regression lines for this dataset are drawn in a matching darker/lighter family. Defaults to the Matplotlib default.
-# % required: no
-# % answer:
-# % guisection: Optional
-# %end
-
-# %option G_OPT_CN
-# % key: color2
-# % type: string
-# % label: Line color for the second dataset
-# % description: Color of the 'strds2' series lines. Accepts a GRASS color name, an R:G:B triplet, or any matplotlib color (hex code or 'tab:' name). Used only when strds2 is given. Its trend-regression lines use a matching family. Defaults to the Matplotlib default.
-# % required: no
-# % answer:
-# % guisection: Optional
-# %end
 
 # %option G_OPT_M_NPROCS
+# % description: Number of parallel processes. For a point ('coordinates') this has no effect. For an area ('zone' or 'raster') it is forwarded to t.rast.univar's zonal extraction.
 # %end
 
 # %option G_OPT_T_WHERE
 # %end
 
 # %rules
+# % exclusive: coordinates, zone, raster
+# % required: coordinates, zone, raster
+# % requires: -d, zone, raster
+# % requires: min_pixels, -d
 # % requires: -b, -g
 # % requires: gam_direction, -g
 # % requires: -y, strds2
+# % requires: vlines_labels, vlines
+# % requires: temporal_outliers2, strds2
 # %end
 
 
 import atexit
-import colorsys
 import importlib.util
-import os
 import sys
 
 import grass.script as gs
 from grass.exceptions import CalledModuleError
+from grass.script.utils import set_path
 
 if not callable(globals().get("_")):
     from gettext import gettext as _
 
-
-# Directories created with gs.tempdir() during the run, removed by cleanup().
-clean_dirs = []
+# extract.py/trend.py/plot.py: this module's own library files (see the
+# ETCFILES entry in the Makefile), split out because this script had grown
+# past a comfortable single-file size. set_path() finds them whether this
+# script is run from its installed location or straight from the source
+# tree. Each library file leaves its own numpy/pandas/matplotlib/statsmodels/
+# scipy names as None at import time (set below, by lazy_import_py_modules(),
+# once GRASS has parsed the command line) so a plain module scan
+# (--help, g.extension) never needs the scientific stack installed.
+set_path("t.rast.stl")
+import extract  # noqa: E402
+import trend  # noqa: E402
+import plot  # noqa: E402
+from extract import (  # noqa: E402
+    clean_dirs,
+    clean_rasters,
+    coords_from_option,
+    validate_zone,
+    make_zone_raster,
+    zone_bbox_center,
+    validate_raster,
+    make_raster_zone,
+    raster_bbox_center,
+    extract_series,
+    extract_zonal_series,
+    build_series,
+    parse_temporal_outliers,
+    detect_temporal_outliers,
+    regularize,
+)
+from trend import (  # noqa: E402
+    decompose_and_fit,
+    write_csv,
+    write_point_vector,
+    validate_odd_window,
+)
+from plot import apply_style, grass_color_to_mpl, plot_result, parse_vlines  # noqa: E402
 
 
 def cleanup():
-    """Remove temporary directories registered during the run."""
+    """Remove temporary directories and rasters registered during the run."""
     for path in clean_dirs:
         gs.try_rmdir(path)
+    if clean_rasters:
+        gs.run_command(
+            "g.remove", flags="f", type="raster", name=clean_rasters, quiet=True
+        )
 
 
 def lazy_import_py_modules(backend="WXAgg"):
     """Lazy import of the third-party scientific stack.
 
+    Imports numpy/pandas/statsmodels/scipy/matplotlib once the command line
+    has been parsed, and hands each to the library module(s) that use it --
+    extract.py/trend.py/plot.py each leave the name as None at import time
+    (see their module docstrings) until this runs. This is what keeps a
+    plain module scan (--help, g.extension) from ever needing the
+    scientific stack installed, now that it lives across four files instead
+    of one.
+
     :param str backend: matplotlib backend to activate before importing pyplot
     """
-    global np
-    global pd
-    global STL
-    global linregress
-    global theilslopes
-    global kendalltau
-    global mpl
-    global plt
-
     try:
         import numpy as np
         import pandas as pd
@@ -437,9 +609,7 @@ def lazy_import_py_modules(backend="WXAgg"):
         )
 
     try:
-        from statsmodels.tsa.seasonal import STL as _STL
-
-        STL = _STL
+        from statsmodels.tsa.seasonal import STL
     except ModuleNotFoundError:
         gs.fatal(
             _(
@@ -450,11 +620,7 @@ def lazy_import_py_modules(backend="WXAgg"):
         )
 
     try:
-        from scipy.stats import (
-            kendalltau as _kendalltau,
-            linregress as _linregress,
-            theilslopes as _theilslopes,
-        )
+        from scipy.stats import kendalltau, linregress, theilslopes
     except ModuleNotFoundError:
         gs.fatal(
             _(
@@ -464,10 +630,6 @@ def lazy_import_py_modules(backend="WXAgg"):
             )
         )
 
-    linregress = _linregress
-    theilslopes = _theilslopes
-    kendalltau = _kendalltau
-
     try:
         import matplotlib as mpl
 
@@ -476,1413 +638,18 @@ def lazy_import_py_modules(backend="WXAgg"):
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is required but not installed. Please install it."))
 
-
-def apply_style(style):
-    """Apply a Matplotlib style sheet, validating the name.
-
-    :param str style: name of a Matplotlib style sheet
-    """
-    if style:
-        if style not in plt.style.available:
-            gs.fatal(
-                _("Unknown style '{}'. Available styles: {}").format(
-                    style, ", ".join(plt.style.available)
-                )
-            )
-        plt.style.use(style)
-
-
-def lazy_import_pygam():
-    """Lazy import of pyGAM, only needed when the monotone GAM curve is requested.
-
-    :return tuple: (LinearGAM, s) classes/functions from pygam
-    """
-    try:
-        from pygam import LinearGAM, s as gam_s
-
-        return LinearGAM, gam_s
-    except ImportError as e:
-        gs.fatal(
-            _(
-                "The Python package 'pygam' is required for the monotone GAM "
-                "trend curve (flag -g) but could not be imported ({err}). "
-                "Install it with e.g. 'pip install pygam', or drop the -g "
-                "flag."
-            ).format(err=e)
-        )
-
-
-def coords_from_option(coordinates):
-    """Parse the coordinates= option into an (east, north) float pair.
-
-    :param str coordinates: "east,north" as given on the command line
-    :return tuple: (east, north) as floats
-    """
-    parts = coordinates.split(",")
-    if len(parts) != 2:
-        gs.fatal(_("The coordinates option must be a single 'east,north' pair."))
-    try:
-        east, north = float(parts[0]), float(parts[1])
-    except ValueError:
-        gs.fatal(_("Could not parse coordinates '{}' as numbers.").format(coordinates))
-    return (east, north)
-
-
-def extract_series(strds, east, north, where, null_value="nan", nprocs=1):
-    """Extract a (date, value) series for one point from an strds.
-
-    Uses t.rast.what with layout=row so each registered timestep yields one
-    row of the form "start|end|value" (with -n adding a header row).
-
-    :param str strds: name of the input space-time raster dataset
-    :param float east: easting of the point
-    :param float north: northing of the point
-    :param str where: optional t.* WHERE clause to subset maps
-    :param str null_value: token used by t.rast.what for NULL pixel values
-    :param int nprocs: number of parallel r.what processes for t.rast.what
-
-    :return tuple: (list_of_start_datetimes_as_str, list_of_float_or_None)
-    """
-    kwargs = {
-        "strds": strds,
-        "coordinates": [east, north],
-        "layout": "row",
-        "null_value": null_value,
-        "flags": "n",  # header row, so we can find columns by name
-        "separator": "pipe",
-        "nprocs": nprocs,
-    }
-    if where:
-        kwargs["where"] = where
-
-    # t.rast.what assembles its result into the file given by output=, but for
-    # long series it also seems to write intermediate r.what text files. It is
-    # not clear how to avoid that, so a temporary directory is used as the working
-    # directory and the assembled result is written to a file in that same
-    # directory. The directory is registered for removal by the atexit
-    # cleanup() handler.
-    tmpdir = gs.tempdir()
-    clean_dirs.append(tmpdir)
-    out_file = os.path.join(tmpdir, "series.txt")
-    try:
-        gs.run_command(
-            "t.rast.what",
-            cwd=tmpdir,
-            overwrite=True,
-            output=out_file,
-            **kwargs,
-        )
-    except CalledModuleError:
-        gs.fatal(
-            _(
-                "t.rast.what failed while sampling strds '{}'. Check that "
-                "the dataset exists, that the point falls within the "
-                "current computational region, and that the region "
-                "resolution is set (see g.region)."
-            ).format(strds)
-        )
-    try:
-        with open(out_file) as fh:
-            raw = fh.read()
-    except OSError:
-        gs.fatal(_("t.rast.what produced no output file for the point."))
-
-    lines = [ln for ln in raw.splitlines() if ln.strip()]
-    if not lines:
-        gs.fatal(_("t.rast.what returned no data for the given point."))
-
-    header = lines[0].split("|")
-    # Row layout for a single point: x|y|start|end|value
-    try:
-        start_idx = header.index("start")
-    except ValueError:
-        # Fall back to position.
-        start_idx = 2 if len(header) >= 5 else 0
-    value_idx = len(header) - 1
-
-    dates = []
-    values = []
-    for ln in lines[1:]:
-        cols = ln.split("|")
-        if len(cols) <= value_idx:
-            continue
-        dates.append(cols[start_idx])
-        token = cols[value_idx]
-        if token in (null_value, "", "*", "None"):
-            values.append(None)
-        else:
-            try:
-                values.append(float(token))
-            except ValueError:
-                values.append(None)
-
-    if not dates:
-        gs.fatal(_("Could not parse any timesteps from t.rast.what output."))
-    return (dates, values)
-
-
-def build_series(dates, values, temporal_type="absolute"):
-    """Build a pandas Series indexed by datetime (absolute) or integer (relative).
-
-    :param list dates: list of date strings (absolute) or integer strings (relative)
-    :param list values: corresponding float values
-    :param str temporal_type: 'absolute' or 'relative'
-    :return pandas.Series: float series sorted by index
-    """
-    if temporal_type == "relative":
-        idx = pd.Index([int(d) for d in dates], dtype="int64")
-    else:
-        idx = pd.to_datetime(dates, format="mixed")
-    s = pd.Series(values, index=idx, dtype="float64").sort_index()
-    s = s[~s.index.duplicated(keep="first")]
-    return s
-
-
-def resolve_relative_step(series, step_opt, tinfo):
-    """Determine the integer spacing of the regular axis for a relative STRDS.
-
-    Priority: explicit 'step' option > dataset granularity (t.info) > fatal.
-
-    :param pandas.Series series: irregular point series (integer index)
-    :param str step_opt: the step= option value (may be empty)
-    :param dict|None tinfo: parsed t.info -g output
-
-    :return int: positive integer step
-    """
-    if step_opt:
-        step = int(step_opt)
-        if step <= 0:
-            gs.fatal(_("The 'step' option must be a positive integer."))
-        gs.message(_("Using user-supplied relative step of {}.").format(step))
-        return step
-    if tinfo:
-        gran = str(tinfo.get("granularity", "")).strip()
-        if gran.isdigit() and int(gran) > 0:
-            gs.message(
-                _("Using STRDS granularity of {} as the relative step.").format(gran)
-            )
-            return int(gran)
-    gs.fatal(
-        _(
-            "Could not determine the regular spacing for this relative STRDS. "
-            "The granularity was not available from t.info; please set the "
-            "'step' option explicitly (integer, in the dataset's time unit)."
-        )
-    )
-
-
-def regularize(
-    series, frequency, method, order, temporal_type="absolute", step=None, tinfo=None
-):
-    """Resample onto a regular axis and interpolate gaps.
-
-    STL requires an evenly spaced, gap-free series. To ensure this, data is resampled
-    to the target frequency and interpolated.
-
-    For relative STRDS the index is an integer sequence. The grid step comes
-    from the 'step' option or the dataset granularity, the extent comes from
-    the observed values, and any observation that does not land on a grid
-    node is snapped to the nearest node with a warning.
-
-    :param pandas.Series series: irregular point series
-    :param str frequency: pandas offset alias (e.g. 'MS', '16D'); may be empty.
-        Ignored for relative STRDS.
-    :param str method: pandas interpolate() method
-    :param int|None order: order for spline/polynomial methods
-    :param str temporal_type: 'absolute' or 'relative'
-    :param str|None step: relative-time step override (option value)
-    :param dict|None tinfo: parsed t.info -g output (relative granularity)
-
-    :return pandas.Series: regular, gap-free series
-    """
-    if temporal_type == "relative":
-        step_val = resolve_relative_step(series, step, tinfo)
-        # Anchor the grid to the dataset start when available (so the lattice
-        # phase matches the STRDS), else to the first observation. The top is
-        # the last observation to avoid a non-existing trailing node.
-        origin = int(series.index.min())
-        if tinfo:
-            start_meta = str(tinfo.get("start_time", "")).strip()
-            try:
-                origin = int(start_meta)
-            except (TypeError, ValueError):
-                pass
-        last = int(series.index.max())
-        # Build nodes from origin up to and including the last observation.
-        # Cap strictly at 'last' so an interval STRDS's end_time (one step
-        # beyond the final map start) cannot introduce a non-existing
-        # trailing node.
-        n_nodes = (last - origin) // step_val + 1
-        nodes = origin + np.arange(n_nodes) * step_val
-        nodes = nodes[nodes <= last]
-        full_idx = pd.Index(nodes.astype("int64"))
-
-        # Snap each observation to its nearest grid node. Off-grid points are
-        # warned about and re-labelled rather than dropped on reindex.
-        offsets = series.index.to_numpy() - origin
-        snapped = origin + np.round(offsets / step_val).astype("int64") * step_val
-        off_grid = int((snapped != series.index.to_numpy()).sum())
-        if off_grid:
-            gs.warning(
-                _(
-                    "{n} of {t} observation(s) did not fall on the regular "
-                    "step={s} grid and were snapped to the nearest grid node."
-                ).format(n=off_grid, t=len(series), s=step_val)
-            )
-        snapped_series = pd.Series(series.to_numpy(), index=pd.Index(snapped))
-        # If two observations are on the same node, they are averaged
-        snapped_series = snapped_series.groupby(level=0).mean()
-        resampled = snapped_series.reindex(full_idx)
-    elif frequency:
-        resampled = series.resample(frequency).mean()
-    else:
-        # Try to use the inferred frequency of the index.
-        inferred = pd.infer_freq(series.index)
-        if inferred is None:
-            gs.fatal(
-                _(
-                    "No 'frequency' was given and the series spacing could not "
-                    "be inferred. Please set the frequency option (e.g. 'MS', "
-                    "'16D')."
-                )
-            )
-        resampled = series.asfreq(inferred)
-
-    interp_kwargs = {"method": method, "limit_direction": "both"}
-    if method in ("spline", "polynomial"):
-        if not order:
-            gs.fatal(
-                _("The '{}' interpolation method requires the 'order' option.").format(
-                    method
-                )
-            )
-        interp_kwargs["order"] = int(order)
-
-    filled = resampled.interpolate(**interp_kwargs)
-    # Edge gaps that interpolation could not reach: back/forward fill.
-    filled = filled.bfill().ffill()
-
-    if filled.isna().any():
-        gs.fatal(_("Series still contains gaps after interpolation; cannot run STL."))
-    if len(filled) < 4:
-        gs.fatal(
-            _("Too few observations ({}) after regularization to run STL.").format(
-                len(filled)
-            )
-        )
-    return filled
-
-
-def infer_period(series, period_opt, temporal_type="absolute", tinfo=None):
-    """Determine the STL seasonal period.
-
-    :param pandas.Series series: regularized series
-    :param str period_opt: the period= option value (may be empty)
-    :param str temporal_type: 'absolute' or 'relative'
-    :param dict|None tinfo: parsed t.info -g output (used for relative STRDS)
-
-    :return int: seasonal period (number of observations per cycle)
-    """
-    if period_opt:
-        return int(period_opt)
-
-    if temporal_type == "relative":
-        # Try to derive period from granularity + unit reported by t.info.
-        per_year_by_unit = {
-            "seconds": 365 * 24 * 3600,
-            "minutes": 365 * 24 * 60,
-            "hours": 24,
-            "days": 365,
-            "weeks": 52,
-            "months": 12,
-            "years": 1,
-        }
-        if tinfo:
-            unit = tinfo.get("unit", "").strip().lower().rstrip("s") + "s"
-            granularity = tinfo.get("granularity", "").strip()
-            if unit in per_year_by_unit and granularity.isdigit():
-                per_year = per_year_by_unit[unit]
-                period = max(2, round(per_year / int(granularity)))
-                gs.message(
-                    _(
-                        "Inferred seasonal period of {} from STRDS granularity ({} {})."
-                    ).format(period, granularity, unit)
-                )
-                return period
-        gs.fatal(
-            _(
-                "Cannot infer a seasonal period for this relative STRDS. "
-                "Please set the 'period' option explicitly (e.g. the number "
-                "of observations per seasonal cycle)."
-            )
-        )
-
-    freq = getattr(series.index, "freqstr", None)
-    if freq is None:
-        gs.fatal(
-            _(
-                "Could not infer a seasonal period from the series frequency. "
-                "Please set the 'period' option explicitly."
-            )
-        )
-    # Map common pandas offset aliases to an annual seasonal period.
-    base = "".join(ch for ch in freq if ch.isalpha()).upper()
-    mult = "".join(ch for ch in freq if ch.isdigit())
-    mult = int(mult) if mult else 1
-    per_year = {
-        "D": 365,
-        "B": 252,
-        "W": 52,
-        # "M"/"Q" are the legacy month-/quarter-end aliases (pandas < 2.2); they
-        # were deprecated in 2.2 and removed in favour of "ME"/"QE". "MS"/"QS"
-        # (month-/quarter-start) are unchanged across versions. All are listed so
-        # frequencies entered against either pandas generation works.
-        "M": 12,
-        "MS": 12,
-        "ME": 12,
-        "Q": 4,
-        "QS": 4,
-        "QE": 4,
-        "H": 24,
-    }
-    if base in per_year:
-        period = max(2, round(per_year[base] / mult))
-        gs.message(
-            _("Inferred seasonal period of {} from frequency '{}'.").format(
-                period, freq
-            )
-        )
-        return period
-    gs.fatal(
-        _(
-            "Could not infer a seasonal period from frequency '{}'. "
-            "Please set the 'period' option explicitly."
-        ).format(freq)
-    )
-
-
-def run_stl(
-    series,
-    period,
-    seasonal,
-    trend,
-    low_pass,
-    seasonal_deg,
-    trend_deg,
-    low_pass_deg,
-    seasonal_jump,
-    trend_jump,
-    low_pass_jump,
-    robust,
-):
-    """Run the statsmodels STL decomposition.
-
-    Only the window-length parameters (seasonal, trend, low_pass) are passed
-    when set. Otherwise, statsmodels' own auto-defaults apply.
-
-    :return statsmodels DecomposeResult: with .observed/.trend/.seasonal/.resid
-    """
-
-    kwargs = {
-        "period": period,
-        "robust": robust,
-        "seasonal_deg": int(seasonal_deg),
-        "trend_deg": int(trend_deg),
-        "low_pass_deg": int(low_pass_deg),
-        "seasonal_jump": int(seasonal_jump),
-        "trend_jump": int(trend_jump),
-        "low_pass_jump": int(low_pass_jump),
-    }
-
-    # Window lengths and jumps are validated up front in validate_options().
-    if seasonal:
-        kwargs["seasonal"] = validate_odd_window(seasonal, "seasonal", 7)
-    if trend:
-        kwargs["trend"] = validate_odd_window(trend, "trend", 3)
-    if low_pass:
-        kwargs["low_pass"] = validate_odd_window(low_pass, "low_pass", 3)
-
-    for key in ("seasonal_jump", "trend_jump", "low_pass_jump"):
-        if kwargs[key] < 1:
-            gs.fatal(_("'{}' must be a positive integer.").format(key))
-
-    try:
-        return STL(series, **kwargs).fit()
-    except ValueError as e:
-        gs.fatal(_("STL decomposition failed: {}").format(e))
-
-
-def effective_trend_window(period, seasonal, trend):
-    """Return the trend LOESS window length statsmodels actually uses.
-
-    When the user sets ``trend`` explicitly, that value is used. Otherwise
-    statsmodels derives it from period and seasonal with the formula from the
-    original STL implementation: the smallest odd integer greater than
-    ``1.5 * period / (1 - 1.5 / seasonal)``. The seasonal window in that
-    formula is itself statsmodels' default (7) when the user left it unset.
-
-    The trend-window-based edge trim has to know the resolved trend window,
-    but the fitted STL object does not provide it (as far as I can see).
-
-    :param int period: seasonal period
-    :param seasonal: user seasonal window or falsy for the statsmodels default
-    :param trend: user trend window or falsy to derive it
-    :return int: the effective (odd) trend window length
-    """
-    if trend:
-        return int(trend)
-    seasonal = int(seasonal) if seasonal else 7
-    raw = 1.5 * period / (1.0 - 1.5 / seasonal)
-    win = int(np.ceil(raw))
-    if win % 2 == 0:
-        win += 1
-    return win
-
-
-# Length of one calendar reporting unit, in days. Used to convert a
-# per-step slope to a per-day/week/month/year slope. Month and year use the
-# mean Gregorian length so the conversion is independent of which month or
-# year the series happens to cover.
-_UNIT_DAYS = {
-    "day": 1.0,
-    "week": 7.0,
-    "month": 365.2425 / 12.0,
-    "year": 365.2425,
-}
-
-
-def clean_granularity(tinfo):
-    """Return the t.info granularity string, stripped of quotes/whitespace.
-
-    t.info -g may report the granularity quoted (e.g. "'1 month'"); strip the
-    surrounding quotes so it parses as "1 month".
-
-    :param dict|None tinfo: parsed t.info -g output
-    :return str: cleaned granularity (possibly empty)
-    """
-    if not tinfo:
-        return ""
-    return str(tinfo.get("granularity", "")).strip().strip("'\"").strip()
-
-
-def step_length_days(frequency, tinfo):
-    """Length of one regularized observation step, in days, for absolute time.
-
-    Derived from the resampling 'frequency' (a pandas offset alias such as
-    'D', 'W', 'MS', '16D'). When 'frequency' is empty (a regularly spaced
-    absolute STRDS resampled on its inferred frequency), the granularity from
-    t.info is used as a fallback.
-
-    :param str frequency: pandas offset alias (may be empty)
-    :param dict|None tinfo: parsed t.info -g output
-    :return float|None: step length in days, or None if it cannot be determined
-    """
-    days_per_unit = {
-        "D": 1.0,
-        "B": 1.0,
-        "W": 7.0,
-        "M": 365.2425 / 12.0,
-        "MS": 365.2425 / 12.0,
-        "ME": 365.2425 / 12.0,
-        "Q": 365.2425 / 4.0,
-        "QS": 365.2425 / 4.0,
-        "Y": 365.2425,
-        "YS": 365.2425,
-        "A": 365.2425,
-        "AS": 365.2425,
-        "H": 1.0 / 24.0,
-    }
-    freq = frequency
-    if not freq and tinfo:
-        # Fall back to the dataset granularity, e.g. "1 months", "16 days".
-        gran = clean_granularity(tinfo).lower()
-        parts = gran.split()
-        if len(parts) == 2 and parts[0].isdigit():
-            n = int(parts[0])
-            unit = parts[1].rstrip("s")
-            per = {
-                "second": 1.0 / 86400.0,
-                "minute": 1.0 / 1440.0,
-                "hour": 1.0 / 24.0,
-                "day": 1.0,
-                "week": 7.0,
-                "month": 365.2425 / 12.0,
-                "year": 365.2425,
-            }.get(unit)
-            if per is not None:
-                return n * per
-        return None
-    if not freq:
-        return None
-    base = "".join(ch for ch in freq if ch.isalpha()).upper()
-    mult = "".join(ch for ch in freq if ch.isdigit())
-    mult = int(mult) if mult else 1
-    if base in days_per_unit:
-        return mult * days_per_unit[base]
-    return None
-
-
-def slope_unit_scale(slope_unit, temporal_type, frequency, step, tinfo, n_obs):
-    """Resolve the slope reporting unit into a (scale, label) pair.
-
-    The trend regressions are fitted in index space, so a raw slope is a value
-    change *per observation step*. Multiplying it by the returned ``scale``
-    converts it to a value change per chosen calendar unit (day/week/month/
-    year), independent of the resampling frequency and therefore comparable
-    across runs (see fit_trend for which quantities the scale is applied to).
-
-    For absolute-time data 'step' returns scale 1.0, the fixed calendar units
-    return their exact conversion, and 'auto' picks the largest of day/week/
-    month/year over which the series spans at least a few units.
-
-    :param str slope_unit: the slope_unit= option ('auto','step','day',...)
-    :param str temporal_type: 'absolute' or 'relative'
-    :param str frequency: the frequency= option (absolute time)
-    :param str step: the step= option (relative time)
-    :param dict|None tinfo: parsed t.info -g output
-    :param int n_obs: number of observations in the regularized series
-    :return tuple: (float scale, str unit_label)
-    """
-    if temporal_type == "relative":
-        # Relative time has no guaranteed calendar mapping, but GRASS relative
-        # STRDS still carry a named time unit (days/weeks/months/years/...).
-        # When that unit is a recognized calendar unit we can convert the
-        # per-step slope to a readable unit exactly as for absolute time;
-        # otherwise we report per step.
-        unit = ""
-        gran = ""
-        if tinfo:
-            unit = str(tinfo.get("unit", "")).strip().strip("'\"").lower().rstrip("s")
-            gran = clean_granularity(tinfo)
-        # Step size in the dataset's own time unit: explicit step= wins, else
-        # the granularity count, else 1.
-        try:
-            step_units = int(step) if step else (int(gran) if gran.isdigit() else 1)
-        except (TypeError, ValueError):
-            step_units = 1
-        unit_days = _UNIT_DAYS.get(unit)
-        if unit_days is not None:
-            # One step is step_units * unit_days long; reuse the same logic as
-            # absolute time so 'auto'/'day'/'week'/'month'/'year' all work.
-            step_days = step_units * unit_days
-            return resolve_calendar_unit(
-                slope_unit,
-                step_days,
-                n_obs,
-                fallback_label=unit_label(step_units, unit),
-            )
-        # Unknown / non-calendar unit: per step only.
-        return 1.0, unit_label(step_units, unit or "step")
-
-    step_days = step_length_days(frequency, tinfo)
-    if step_days is None and slope_unit in _UNIT_DAYS:
-        gs.warning(
-            _(
-                "Could not determine the step length in days; reporting "
-                "trend slopes per observation step instead of per {u}."
-            ).format(u=slope_unit)
-        )
-    return resolve_calendar_unit(
-        slope_unit, step_days, n_obs, fallback_label=step_label(frequency, tinfo)
-    )
-
-
-def resolve_calendar_unit(slope_unit, step_days, n_obs, fallback_label):
-    """Convert a per-step slope to a per-calendar-unit slope.
-
-    Shared by the absolute-time path and the relative-time path when the
-    dataset's time unit is a recognized calendar unit. Returns a (scale, label)
-    pair where multiplying a per-step slope by ``scale`` gives the value change
-    per the chosen unit.
-
-    :param str slope_unit: 'auto', 'step', 'day', 'week', 'month' or 'year'
-    :param float|None step_days: length of one observation step in days, or
-        None if it could not be determined
-    :param int n_obs: number of observations (for 'auto' span selection)
-    :param str fallback_label: label to use when reporting per step
-    :return tuple: (float scale, str unit_label)
-    """
-    # Per step, or step length unknown: no conversion.
-    if slope_unit == "step" or step_days is None or step_days <= 0:
-        return 1.0, fallback_label
-
-    # Explicit calendar unit.
-    if slope_unit in _UNIT_DAYS:
-        return _UNIT_DAYS[slope_unit] / step_days, slope_unit
-
-    # 'auto' (or anything unexpected): pick the largest unit the series spans
-    # at least ~3 of, so the slope is over a unit comparable to the data extent
-    # without being tiny.
-    span_days = max(0.0, (n_obs - 1)) * step_days
-    for unit in ("year", "month", "week", "day"):
-        if span_days >= 3.0 * _UNIT_DAYS[unit]:
-            return _UNIT_DAYS[unit] / step_days, unit
-    # Very short series: report per day.
-    return _UNIT_DAYS["day"] / step_days, "day"
-
-
-def unit_label(count, unit):
-    """Format a (count, unit) pair as a clean per-unit label.
-
-    A count of 1 is dropped and the unit is singular ('month', 'day'); a count
-    greater than 1 keeps the plural ('3 months', '16 days').
-
-    :param int count: number of base units per step
-    :param str unit: singular unit name (e.g. 'month'); may be '' or 'step'
-    :return str: e.g. 'month', '3 months', 'step'
-    """
-    unit = (unit or "step").rstrip("s")
-    try:
-        count = int(count)
-    except (TypeError, ValueError):
-        count = 1
-    if count <= 1:
-        return unit
-    return "{} {}s".format(count, unit)
-
-
-def step_label(frequency, tinfo):
-    """Human label for one observation step (used when reporting per step).
-
-    Turns a pandas offset alias into a clean unit name: 'MS' -> 'month',
-    'W' -> 'week', '16D' -> '16 days', 'D' -> 'day'. Falls back to the t.info
-    granularity (e.g. '1 months' -> 'month', '16 days' -> '16 days') and then
-    to a generic 'step'.
-
-    :param str frequency: the frequency= option (absolute time)
-    :param dict|None tinfo: parsed t.info -g output
-    :return str: e.g. 'month', '16 days', 'step'
-    """
-    # Map an offset alias base to a singular unit name.
-    alias_unit = {
-        "D": "day",
-        "B": "day",
-        "W": "week",
-        "M": "month",
-        "MS": "month",
-        "ME": "month",
-        "Q": "quarter",
-        "QS": "quarter",
-        "Y": "year",
-        "YS": "year",
-        "A": "year",
-        "AS": "year",
-        "H": "hour",
-    }
-    if frequency:
-        base = "".join(ch for ch in frequency if ch.isalpha()).upper()
-        mult = "".join(ch for ch in frequency if ch.isdigit())
-        mult = int(mult) if mult else 1
-        unit = alias_unit.get(base)
-        if unit:
-            return unit_label(mult, unit)
-        return "{} step".format(frequency)
-    if tinfo:
-        gran = clean_granularity(tinfo)
-        parts = gran.split()
-        if len(parts) == 2 and parts[0].isdigit():
-            return unit_label(int(parts[0]), parts[1].rstrip("s"))
-        if gran:
-            return "{} step".format(gran)
-    return "step"
-
-
-def format_slope(value, unit_label=None):
-    """Format a slope as a plain decimal (no scientific notation).
-
-    This picks enough decimal places to show four significant figures of the
-    value. When ``unit_label`` is given it is appended as a per-unit suffix,
-    e.g. '0.0231 /year'.
-
-    :param float value: slope value
-    :param str|None unit_label: reporting unit (e.g. 'year', '16D step'); when
-        given, a ' /<unit>' suffix is appended
-    :return str: fixed-point string, e.g. '0.00006489' or '0.0231 /year'
-    """
-    if value == 0 or not np.isfinite(value):
-        text = "{:.4f}".format(value)
-    else:
-        # Decimals needed so the first significant digit plus 3 more are shown.
-        leading = int(np.floor(np.log10(abs(value))))
-        decimals = max(4, 3 - leading)
-        text = "{:.{d}f}".format(value, d=decimals)
-    if unit_label:
-        text = "{} /{}".format(text, unit_label)
-    return text
-
-
-def write_csv(result, csv_path, temporal_type="absolute"):
-    """Write the decomposition components to a CSV file."""
-    df = pd.DataFrame(
-        {
-            "observed": result.observed,
-            "trend": result.trend,
-            "seasonal": result.seasonal,
-            "residual": result.resid,
-        }
-    )
-    df.index.name = "time_step" if temporal_type == "relative" else "date"
-    df.to_csv(csv_path)
-    gs.message(_("Components written to {}").format(csv_path))
-
-
-def fit_gam(xm, ym, direction, sen_slope):
-    """Fit a shape-constrained (monotone) GAM to (xm, ym) with pyGAM.
-
-    A single smooth term on time is fit under a monotonic-increasing or
-    monotonic-decreasing constraint. When ``direction`` is 'auto', the sign of
-    the Theil-Sen slope decides the direction (a flat/zero Sen slope defaults to
-    increasing). The fit is on the deseasonalized observed series.
-
-    :param numpy.ndarray xm: observation indices (x), NaNs already removed
-    :param numpy.ndarray ym: deseasonalized values (y), NaNs already removed
-    :param str direction: 'auto', 'increasing' or 'decreasing'
-    :param float sen_slope: Theil-Sen slope, used to resolve 'auto'
-    :return dict|None: GAM results, or None if the fit could not be made. Keys:
-        'fitted' (curve at each xm), 'lower'/'upper' (95% band at each xm or
-        None), 'x' (the xm used), 'direction' (the resolved direction),
-        'change' (fitted end minus fitted start over the span), 'pseudo_r2'.
-    """
-    LinearGAM, gam_s = lazy_import_pygam()
-
-    if direction == "auto":
-        resolved = "decreasing" if sen_slope < 0 else "increasing"
-    else:
-        resolved = direction
-    constraint = "monotonic_inc" if resolved == "increasing" else "monotonic_dec"
-
-    # pyGAM expects a 2-D design matrix.
-    X = xm.reshape(-1, 1)
-    try:
-        gam = LinearGAM(gam_s(0, constraints=constraint)).fit(X, ym)
-    except Exception as e:  # pyGAM raises various errors on degenerate fits.
-        gs.warning(_("Monotone GAM fit failed ({}); skipping the GAM curve.").format(e))
-        return None
-
-    fitted = np.asarray(gam.predict(X), dtype="float64")
-    try:
-        band = gam.confidence_intervals(X, width=0.95)
-        lower = np.asarray(band[:, 0], dtype="float64")
-        upper = np.asarray(band[:, 1], dtype="float64")
-    except Exception:
-        lower = upper = None
-
-    try:
-        pseudo_r2 = float(
-            gam.statistics_.get("pseudo_r2", {}).get("explained_deviance", np.nan)
-        )
-    except Exception:
-        pseudo_r2 = float("nan")
-
-    return {
-        "fitted": fitted,
-        "lower": lower,
-        "upper": upper,
-        "x": xm,
-        "direction": resolved,
-        "change": float(fitted[-1] - fitted[0]),
-        "pseudo_r2": pseudo_r2,
-    }
-
-
-def fit_trend(
-    series,
-    trim=0,
-    fit_gam_curve=False,
-    gam_direction="auto",
-    scale=1.0,
-    unit_label=None,
-):
-    """Linear and monotone-GAM regression of the deseasonalized series vs time.
-
-    The regressions are fit on the **deseasonalized observed** series, i.e.
-    ``trend + residual`` (equivalently ``observed - seasonal``).
-
-    Uses scipy.stats.linregress, giving slope, intercept, R^2 and the two-sided
-    p-value of the slope in one call.
-
-    The fit is always done in index space (x = observation number), so the raw
-    slopes are a value change per observation step. ``scale`` converts those
-    into a value change per reporting unit (per day/week/month/year, or per
-    step), and ``unit_label`` names that unit. The conversion is applied only
-    to slope-like quantities (OLS/Theil-Sen slope and their confidence bounds,
-    the GAM net change), stored under the ``*_report`` keys; the dimensionless
-    statistics (R^2, p-values, Kendall tau) are never scaled. The raw,
-    index-space ``slope``/``intercept``/``sen_slope``/``sen_intercept`` keys are
-    kept unchanged because the plotted lines are drawn in index space.
-
-    The first and last STL trend points are extrapolated by LOESS from one-sided
-    neighbourhoods, making them less reliable. Setting ``trim`` drops that
-    many observations from each end before the fit, so the regression is
-    computed only over the interior where the estimate is trustworthy. The same
-    trim is applied to all three fits (OLS, Theil-Sen and GAM) for consistency.
-
-    The x axis used for the regression keeps the original observation indexing:
-    after trimming, the first retained point has x = ``trim`` (not 0). The
-    returned ``x_start`` and ``x_stop`` give the inclusive index range the fit
-    spans, so the line can be drawn over exactly that range.
-
-    :param pandas.Series series: the deseasonalized observed series
-        (trend + residual)
-    :param int trim: number of observations to drop from each end before the
-        fit. Values < 0 are treated as 0. If trimming would leave fewer than
-        two points, the fit falls back to the full (untrimmed) series.
-    :param bool fit_gam_curve: also fit a monotone GAM curve (requires pygam).
-    :param str gam_direction: 'auto', 'increasing' or 'decreasing'.
-    :param float scale: multiplier converting a per-step slope into a per-unit
-        slope (from slope_unit_scale()).
-    :param str|None unit_label: name of the reporting unit (e.g. 'year').
-    :return dict|None: regression results, or None if there are fewer than two
-        valid observations even without trimming. The dict keys are spelled out
-        in the ``return {...}`` block below; the non-obvious ones are: the raw
-        ``slope``/``sen_slope`` etc. are in index space (per observation step),
-        while their ``*_report`` counterparts are scaled to the reporting unit;
-        ``x_start``/``x_stop`` give the inclusive index range the fit spans (so
-        the line can be drawn over exactly that range) and ``trim`` is the
-        per-side edge trim actually applied.
-    """
-    n = len(series)
-    x_full = np.arange(n)
-    y_full = np.asarray(series.values, dtype="float64")
-
-    trim = max(0, int(trim))
-    # Only trim if enough interior points remain for a meaningful regression.
-    if trim > 0 and n - 2 * trim >= 2:
-        sl = slice(trim, n - trim)
-    else:
-        if trim > 0:
-            gs.warning(
-                _(
-                    "Edge trim of {t} per side leaves too few points "
-                    "({n} total); fitting the trend regression on the full "
-                    "series instead."
-                ).format(t=trim, n=n)
-            )
-        sl = slice(0, n)
-
-    x = x_full[sl]
-    y = y_full[sl]
-    mask = ~np.isnan(y)
-    if mask.sum() < 2:
-        return None
-    xm = x[mask]
-    ym = y[mask]
-
-    # Ordinary least-squares regression: slope, intercept, R^2, p-value.
-    reg = linregress(xm, ym)
-
-    # Robust trend: Theil-Sen slope (median of pairwise slopes)
-    ts_slope, ts_intercept, ts_lo, ts_hi = theilslopes(ym, xm)
-    mk_tau, mk_pvalue = kendalltau(xm, ym)
-
-    # Optional shape-constrained (monotone) GAM curve.
-    gam = None
-    if fit_gam_curve:
-        gam = fit_gam(xm, ym, gam_direction, float(ts_slope))
-
-    scale = float(scale)
-    return {
-        "slope": float(reg.slope),
-        "intercept": float(reg.intercept),
-        "r2": float(reg.rvalue) ** 2,
-        "pvalue": float(reg.pvalue),
-        "sen_slope": float(ts_slope),
-        "sen_intercept": float(ts_intercept),
-        "sen_lo": float(ts_lo),
-        "sen_hi": float(ts_hi),
-        "mk_tau": float(mk_tau),
-        "mk_pvalue": float(mk_pvalue),
-        "gam": gam,
-        "x_start": int(x[0]),
-        "x_stop": int(x[-1]),
-        "trim": int(sl.start),
-        # Reporting conversion: index-space (per-step) slopes scaled to the
-        # chosen calendar/step unit. The raw keys above are unchanged so the
-        # plotted lines stay in index space.
-        "scale": scale,
-        "unit_label": unit_label,
-        "slope_report": float(reg.slope) * scale,
-        "sen_slope_report": float(ts_slope) * scale,
-        "sen_lo_report": float(ts_lo) * scale,
-        "sen_hi_report": float(ts_hi) * scale,
-    }
-
-
-def write_point_vector(vector, east, north, trend_fit=None):
-    """Create a point vector layer at the selected (east, north) location.
-
-    When a trend regression is supplied, the OLS slope, R^2 and p-value, plus
-    the robust Theil-Sen slope and the Mann-Kendall tau and p-value, are stored
-    as attributes of the single point feature. The slope values are in the
-    chosen reporting unit (per day/week/month/year, or per step), named in the
-    ``slope_unit`` text column. When a monotone GAM was fit, its net change and
-    explained deviance are stored too.
-
-    :param str vector: name of the output point vector layer
-    :param float east: easting of the point
-    :param float north: northing of the point
-    :param dict|None trend_fit: regression as returned by fit_trend()
-    """
-    if trend_fit is not None:
-        gam = trend_fit.get("gam")
-        gam_change = gam["change"] if gam else ""
-        gam_dev = gam["pseudo_r2"] if gam else ""
-        unit_label = trend_fit.get("unit_label") or "step"
-        columns = [
-            "x double precision",
-            "y double precision",
-            "cat integer",
-            "slope double precision",
-            "r2 double precision",
-            "pvalue double precision",
-            "sen_slope double precision",
-            "mk_tau double precision",
-            "mk_pvalue double precision",
-            "slope_unit varchar(32)",
-            "gam_change double precision",
-            "gam_deviance double precision",
-        ]
-        stdin = "{e},{n},1,{s},{r},{p},{ss},{kt},{kp},{u},{gc},{gd}\n".format(
-            e=east,
-            n=north,
-            s=trend_fit.get("slope_report", trend_fit["slope"]),
-            r=trend_fit["r2"],
-            p=trend_fit["pvalue"],
-            ss=trend_fit.get("sen_slope_report", trend_fit.get("sen_slope", "")),
-            kt=trend_fit.get("mk_tau", ""),
-            kp=trend_fit.get("mk_pvalue", ""),
-            u=unit_label,
-            gc=gam_change,
-            gd=gam_dev,
-        )
-        kwargs = {"columns": columns, "cat": 3}
-    else:
-        stdin = "{e},{n}\n".format(e=east, n=north)
-        kwargs = {}
-    try:
-        gs.write_command(
-            "v.in.ascii",
-            input="-",
-            output=vector,
-            separator="comma",
-            stdin=stdin,
-            overwrite=gs.overwrite(),
-            **kwargs,
-        )
-    except CalledModuleError:
-        gs.fatal(_("Could not create point vector layer '{}'.").format(vector))
-    if trend_fit is not None:
-        # The x/y coordinate columns are only needed to import the geometry;
-        # drop them so the attribute table holds just the regression stats.
-        try:
-            gs.run_command("v.db.dropcolumn", map=vector, columns="x,y")
-        except CalledModuleError:
-            gs.warning(
-                _("Could not drop the 'x' and 'y' columns from '{}'.").format(vector)
-            )
-    gs.message(_("Created point vector layer '{}'.").format(vector))
-
-
-def grass_color_to_mpl(value):
-    """Convert a colour spec to a matplotlib-usable colour.
-
-    Accepts a broad range of notations: a GRASS ``R:G:B`` triplet with each
-    component in 0-255 (rescaled to a 0-1 RGB tuple), or anything matplotlib
-    already understands. The colon-separated form is only treated
-    as an RGB triplet when its components are numeric, so colon-bearing
-    matplotlib names such as ``tab:blue`` still pass straight through.
-
-    :param str|None value: the option value (may be empty/None)
-    :return: a matplotlib colour (str name or 0-1 RGB tuple), or None if unset
-        or 'none'
-    :raises ValueError: if an R:G:B triplet has out-of-range components
-    """
-    if not value:
-        return None
-    value = value.strip()
-    # 'none' (allowed by G_OPT_CN) means no explicit colour here: fall back to
-    # the default series colour rather than drawing an invisible line.
-    if value.lower() == "none":
-        return None
-    # GRASS R:G:B[:A] triplet -- only when the parts are all numeric, so
-    # colon-bearing matplotlib names (e.g. 'tab:blue') are left for matplotlib.
-    if ":" in value:
-        parts = value.split(":")
-        if all(p.strip().lstrip("-").isdigit() for p in parts):
-            if len(parts) not in (3, 4):
-                raise ValueError("expected R:G:B or R:G:B:A")
-            comps = []
-            for p in parts:
-                c = int(p)
-                if not 0 <= c <= 255:
-                    raise ValueError("each component must be in 0-255")
-                comps.append(c / 255.0)
-            return tuple(comps)
-    # Otherwise hand back as-is for matplotlib to resolve (name or hex).
-    return value
-
-
-def trend_color_family(base_color):
-    """Derive a 3-shade colour family (ols/sen/gam) from a base series colour.
-
-    The regression lines for a dataset share the hue of its series but are
-    shaded darker so they stand out against it: OLS darkest, Theil-Sen mid,
-    GAM lightest (still darker than the series line). Returns a dict with
-    'ols', 'sen' and 'gam' hex colours.
-
-    :param str base_color: any matplotlib colour spec (name or hex)
-    :return dict: {'ols': hex, 'sen': hex, 'gam': hex}
-    """
-    r, g, b = mpl.colors.to_rgb(base_color)
-    h, light, s = colorsys.rgb_to_hls(r, g, b)
-    # Boost saturation a touch and pick three lightness levels below the base.
-    s = min(1.0, s + 0.1)
-
-    def shade(lightness):
-        rr, gg, bb = colorsys.hls_to_rgb(h, max(0.0, min(1.0, lightness)), s)
-        return mpl.colors.to_hex((rr, gg, bb))
-
-    return {
-        "ols": shade(light * 0.45),
-        "sen": shade(light * 0.7),
-        "gam": shade(light * 0.9),
-    }
-
-
-def draw_trend_lines(
-    ax,
-    comp,
-    trend_fit,
-    show_ols,
-    show_sen,
-    show_gam,
-    show_band,
-    with_stats=True,
-    colors=None,
-    label_suffix="",
-):
-    """Draw the requested trend regression line(s) on a Trend panel axis.
-
-    Each regression type has a fixed linestyle (OLS dashed, Theil-Sen
-    dash-dot, GAM dotted). Colours are taken from ``colors``; passing a single
-    colour (the dataset's family) for all three lets linestyle distinguish the
-    regression type while colour distinguishes the dataset.
-
-    :param ax: matplotlib Axes (the Trend panel, or its twin)
-    :param pandas.Series comp: the STL trend component for this dataset
-    :param dict trend_fit: regression results from fit_trend()
-    :param bool show_ols: draw the OLS line
-    :param bool show_sen: draw the Theil-Sen line
-    :param bool show_gam: draw the monotone GAM curve
-    :param bool show_band: shade the GAM 95% confidence band
-    :param bool with_stats: include slope/R^2/p in the legend labels. Dropped
-        when two datasets are plotted (the stats still print to the terminal).
-    :param dict|None colors: per-line colours with keys 'ols', 'sen', 'gam'.
-        Defaults to the single-dataset red/green/purple scheme.
-    :param str label_suffix: appended to each legend label, e.g. " (precip)"
-    :return list: the line handles drawn (for building a combined legend)
-    """
-    if colors is None:
-        colors = {"ols": "tab:red", "sen": "tab:green", "gam": "tab:purple"}
-    handles = []
-    x0 = trend_fit.get("x_start", 0)
-    x1 = trend_fit.get("x_stop", len(comp) - 1)
-    x = np.arange(x0, x1 + 1)
-    idx = comp.index[x0 : x1 + 1]
-
-    if show_ols:
-        ols = trend_fit["slope"] * x + trend_fit["intercept"]
-        if with_stats:
-            lbl = "OLS (slope = {}, $R^2$ = {:.3f}){}".format(
-                format_slope(
-                    trend_fit.get("slope_report", trend_fit["slope"]),
-                    trend_fit.get("unit_label"),
-                ),
-                trend_fit["r2"],
-                label_suffix,
-            )
-        else:
-            lbl = "OLS" + label_suffix
-        (h,) = ax.plot(
-            idx, ols, color=colors["ols"], linestyle="--", linewidth=1, label=lbl
-        )
-        handles.append(h)
-    if show_sen and "sen_slope" in trend_fit:
-        sen = trend_fit["sen_slope"] * x + trend_fit["sen_intercept"]
-        if with_stats:
-            lbl = "Theil-Sen (slope = {}, MK p = {:.3f}){}".format(
-                format_slope(
-                    trend_fit.get("sen_slope_report", trend_fit["sen_slope"]),
-                    trend_fit.get("unit_label"),
-                ),
-                trend_fit["mk_pvalue"],
-                label_suffix,
-            )
-        else:
-            lbl = "Theil-Sen" + label_suffix
-        (h,) = ax.plot(
-            idx, sen, color=colors["sen"], linestyle="-.", linewidth=1, label=lbl
-        )
-        handles.append(h)
-    gam = trend_fit.get("gam") if show_gam else None
-    if gam is not None:
-        gidx = comp.index[gam["x"]]
-        if show_band and gam.get("lower") is not None:
-            ax.fill_between(
-                gidx,
-                gam["lower"],
-                gam["upper"],
-                color=colors["gam"],
-                alpha=0.15,
-                linewidth=0,
-                zorder=1,
-            )
-        if with_stats:
-            lbl = "Monotone GAM ({}, change = {}){}".format(
-                gam["direction"], format_slope(gam["change"]), label_suffix
-            )
-        else:
-            lbl = "Monotone GAM" + label_suffix
-        (h,) = ax.plot(
-            gidx,
-            gam["fitted"],
-            color=colors["gam"],
-            linestyle=":",
-            linewidth=1.5,
-            label=lbl,
-        )
-        handles.append(h)
-    return handles
-
-
-def plot_result(
-    result,
-    output,
-    dpi,
-    dimensions,
-    east,
-    north,
-    temporal_type="absolute",
-    trend_fit=None,
-    show_ols=True,
-    show_sen=True,
-    show_gam=False,
-    show_band=False,
-    show_stats=False,
-    result2=None,
-    trend_fit2=None,
-    strds_name=None,
-    strds2_name=None,
-    same_yscale=False,
-    line_color=None,
-    line_color2=None,
-    fontsize=None,
-    line_width=None,
-    title=None,
-):
-    """Build the multi-panel STL plot, in the style of R's plot(stl(...)).
-
-    Saves to file when output is given (format from extension), otherwise
-    shows an interactive window.
-
-    When a second decomposition (``result2``) is given, both datasets are drawn
-    on the same four panels. By default the second dataset is plotted on a twin
-    right y-axis on each panel (its scale may differ); with ``same_yscale`` both
-    datasets instead share one common y-axis range per panel (useful when the
-    two are in comparable units). The two datasets are distinguished by colour,
-    with a single legend (in the Observed panel) naming each. The per-dataset
-    trend regression lines are drawn on the Trend panel for both; their
-    slope/R^2/p statistics are omitted from the legend in the two-dataset case
-    (they are still printed to the terminal) to keep the panel readable.
-
-    :param bool show_ols: draw the ordinary least-squares (OLS) trend line.
-    :param bool show_sen: draw the robust Theil-Sen trend line.
-    :param bool show_gam: draw the monotone GAM trend curve.
-    :param bool show_band: shade the GAM 95% confidence band (with show_gam).
-    :param bool show_stats: include the trend-line statistics (slope, R^2,
-        Mann-Kendall p, GAM net change) in the plot legend. When False, the
-        legend just names each line; the statistics are always printed to the
-        terminal regardless.
-    :param object|None result2: STL fit of a second dataset to co-plot.
-    :param dict|None trend_fit2: regressions for the second dataset.
-    :param str|None strds_name: name of the primary strds (legend).
-    :param str|None strds2_name: name of the second strds (legend).
-    :param bool same_yscale: share one common y-axis range between the two
-        datasets on each panel instead of using a twin right axis.
-    :param line_color: series line colour for the first dataset, as a
-        matplotlib-ready colour (name or 0-1 RGB/RGBA tuple; the caller converts
-        from GRASS colour syntax). Defaults to a blue.
-    :param line_color2: series line colour for the second dataset. Defaults to
-        an orange.
-    """
-    have_second = result2 is not None
-    # Series line colours: user-supplied or sensible defaults.
-    color1 = line_color or "tab:blue"
-    color2 = line_color2 or "tab:orange"
-    # GRASS dataset names are "name@mapset"; show only the name in the legend.
-    label1 = (strds_name or "strds").split("@")[0]
-    label2 = (strds2_name or "strds2").split("@")[0]
-    # Regression-line colour families, derived from each dataset's series colour
-    # so custom colours propagate; linestyle then distinguishes OLS / Theil-Sen
-    # / GAM within a dataset, while the colour family identifies the dataset.
-    trend_colors1 = trend_color_family(color1)
-    trend_colors2 = trend_color_family(color2)
-    # A shared y-axis only makes sense with two datasets.
-    shared_scale = have_second and same_yscale
-
-    # Unset font size / line width fall back to the Matplotlib/style defaults.
-    if fontsize is not None:
-        plt.rcParams["font.size"] = fontsize
-    legend_fontsize = fontsize * 0.9 if fontsize is not None else "small"
-    fig, axes = plt.subplots(4, 1, figsize=dimensions, sharex=True)
-    panels = [
-        ("Observed", result.observed, result2.observed if have_second else None),
-        ("Trend", result.trend, result2.trend if have_second else None),
-        ("Seasonal", result.seasonal, result2.seasonal if have_second else None),
-        ("Residual", result.resid, result2.resid if have_second else None),
-    ]
-    # Colour the primary series when a second dataset is present or the user
-    # supplied a custom colour; otherwise keep matplotlib's default so a plain
-    # single-dataset plot looks unchanged.
-    primary_color = color1 if (have_second or line_color) else None
-
-    for ax, (label, comp, comp2) in zip(axes, panels):
-        ax.grid(axis="both", color="lightgrey", linewidth=0.3, zorder=0)
-        trend_handles = []
-
-        # primary dataset on the left axis
-        # ---------------------------------------------------------
-        if label == "Residual":
-            ax.axhline(0, color="grey", linewidth=0.8, zorder=1)
-            ax.plot(
-                comp.index,
-                comp.values,
-                marker="o",
-                markersize=2,
-                linestyle="none",
-                color=primary_color,
-            )
-        else:
-            ax.plot(comp.index, comp.values, linewidth=line_width, color=primary_color)
-
-        if label == "Trend" and trend_fit is not None:
-            trend_handles += draw_trend_lines(
-                ax,
-                comp,
-                trend_fit,
-                show_ols,
-                show_sen,
-                show_gam,
-                show_band,
-                with_stats=show_stats,
-                colors=trend_colors1 if have_second else None,
-                label_suffix=" ({})".format(label1) if have_second else "",
-            )
-            if not have_second:
-                # Single-dataset: legend on the panel (stats or plain names).
-                if ax.get_legend_handles_labels()[0]:
-                    ax.legend(loc="best", fontsize=legend_fontsize, frameon=False)
-
-        # Colour the left-axis ticks to match the first series only when the two
-        # datasets sit on separate (twin) axes; with a shared scale the axis is
-        # common to both, so its ticks stay neutral.
-        if have_second and not shared_scale:
-            ax.tick_params(axis="y", labelcolor=color1)
-
-        # second dataset
-        # ---------------------------------------------------------
-        if have_second:
-            # Shared scale: draw on the same axis. Twin scale: own right axis.
-            ax2 = ax if shared_scale else ax.twinx()
-            if label == "Residual":
-                if not shared_scale:
-                    ax2.axhline(0, color="grey", linewidth=0.8, zorder=1)
-                ax2.plot(
-                    comp2.index,
-                    comp2.values,
-                    marker="o",
-                    markersize=2,
-                    linestyle="none",
-                    color=color2,
-                )
-            else:
-                ax2.plot(comp2.index, comp2.values, linewidth=line_width, color=color2)
-            if not shared_scale:
-                ax2.tick_params(axis="y", labelcolor=color2)
-                ax2.margins(x=0.01)
-
-            if label == "Trend" and trend_fit2 is not None:
-                trend_handles += draw_trend_lines(
-                    ax2,
-                    comp2,
-                    trend_fit2,
-                    show_ols,
-                    show_sen,
-                    show_gam,
-                    show_band,
-                    with_stats=show_stats,
-                    colors=trend_colors2,
-                    label_suffix=" ({})".format(label2),
-                )
-
-        if have_second and label == "Trend" and trend_handles:
-            ax.legend(
-                handles=trend_handles,
-                loc="best",
-                fontsize=legend_fontsize,
-                frameon=False,
-            )
-
-        ax.set_ylabel(label)
-        ax.margins(x=0.01)
-
-    # A single legend identifying the two datasets, on the Observed panel.
-    if have_second:
-        observed_ax = axes[0]
-        line1 = mpl.lines.Line2D([], [], color=color1, linewidth=1, label=label1)
-        line2 = mpl.lines.Line2D([], [], color=color2, linewidth=1, label=label2)
-        observed_ax.legend(
-            handles=[line1, line2], loc="best", fontsize=legend_fontsize, frameon=False
-        )
-
-    axes[-1].set_xlabel("Time step" if temporal_type == "relative" else "Date")
-    fig.align_ylabels(axes)
-
-    # Plot title (empty means no title)
-    if title:
-        fig.suptitle(title)
-
-    if output:
-        fig.tight_layout()
-        fig.savefig(output, bbox_inches="tight", dpi=dpi)
-        plt.close(fig)
-        path_name = os.path.split(output)
-        gs.message(
-            _("Done, you can find the file {name} in {path}").format(
-                name=path_name[1], path=path_name[0] or "."
-            )
-        )
-    else:
-        gs.message(_("Close the figure window to continue."))
-        fig.tight_layout()
-        plt.show()
-        plt.close(fig)
-
-
-def validate_odd_window(value, name, minimum):
-    """Validate an odd-integer LOESS window length, returning the int value.
-
-    :param str|int value: the option value (may be empty/None)
-    :param str name: option name, for the error message
-    :param int minimum: smallest allowed value
-    :return int|None: the validated integer, or None if unset
-    """
-    if not value:
-        return None
-    value = int(value)
-    if value < minimum or value % 2 == 0:
-        gs.fatal(_("'{n}' must be an odd integer >= {m}.").format(n=name, m=minimum))
-    return value
+    extract.np = np
+    extract.pd = pd
+    trend.np = np
+    trend.pd = pd
+    trend.STL = STL
+    trend.linregress = linregress
+    trend.theilslopes = theilslopes
+    trend.kendalltau = kendalltau
+    plot.np = np
+    plot.pd = pd
+    plot.mpl = mpl
+    plot.plt = plt
 
 
 def validate_options(options, flags, temporal_type):
@@ -1896,6 +663,10 @@ def validate_options(options, flags, temporal_type):
       * spline / polynomial interpolation requires 'order'
       * a relative-time 'step' override is a positive integer
       * an absolute-time 'frequency' is a valid pandas offset alias
+      * temporal_outliers/temporal_outliers2 parse as 'threshold,window'
+      * statistic=percentile requires percentile_value
+      * the -d (dispersion band) flag only applies to statistic=mean/median
+      * min_pixels, when given, is a positive integer
 
     Data-dependent checks (period vs. length, gaps after interpolation, etc.)
     are intentionally left to run later, once the series is available.
@@ -1905,6 +676,25 @@ def validate_options(options, flags, temporal_type):
         pygam availability check)
     :param str temporal_type: 'absolute' or 'relative' (from t.info)
     """
+    # statistic=percentile needs an explicit percentile_value; the dispersion
+    # band (-d) has no natural paired spread value outside mean/median, so it
+    # is restricted to those two statistics rather than silently showing a
+    # misleading band.
+    statistic = options["statistic"]
+    if statistic == "percentile" and not options["percentile_value"]:
+        gs.fatal(
+            _("The 'percentile_value' option is required when 'statistic' is 'percentile'.")
+        )
+    if flags["d"] and statistic not in ("mean", "median"):
+        gs.fatal(
+            _(
+                "The '-d' flag (pixel-value spread band) is only meaningful "
+                "with 'statistic=mean' or 'statistic=median'."
+            )
+        )
+    if options["min_pixels"] and int(options["min_pixels"]) < 1:
+        gs.fatal(_("The 'min_pixels' option must be a positive integer."))
+
     # STL LOESS window lengths: odd integers, each with its own minimum.
     validate_odd_window(options["seasonal"], "seasonal", 7)
     validate_odd_window(options["trend"], "trend", 3)
@@ -1923,6 +713,15 @@ def validate_options(options, flags, temporal_type):
             )
         )
 
+    # At least one panel must be kept in the figure.
+    if not [p for p in options["plots"].split(",") if p]:
+        gs.fatal(
+            _(
+                "At least one panel must be selected in the 'plots' option "
+                "(observed, trend, seasonal and/or residual)."
+            )
+        )
+
     # Relative-time step override, when given, must be a positive integer.
     if temporal_type == "relative" and options["step"]:
         if int(options["step"]) <= 0:
@@ -1934,7 +733,10 @@ def validate_options(options, flags, temporal_type):
     # message. The below will catch it and give a clear message instead.
     if temporal_type == "absolute" and options["frequency"]:
         try:
-            pd.tseries.frequencies.to_offset(options["frequency"])
+            # lazy_import_py_modules() (called before this) has already set
+            # extract.pd; validate_options() itself has no reason to import
+            # pandas again just for this one check.
+            extract.pd.tseries.frequencies.to_offset(options["frequency"])
         except (ValueError, TypeError):
             gs.fatal(
                 _(
@@ -1945,6 +747,11 @@ def validate_options(options, flags, temporal_type):
                     "bare number is not accepted."
                 ).format(v=options["frequency"])
             )
+
+    # temporal_outliers / temporal_outliers2, when given, must parse as
+    # 'threshold,window'.
+    parse_temporal_outliers(options["temporal_outliers"], "temporal_outliers")
+    parse_temporal_outliers(options["temporal_outliers2"], "temporal_outliers2")
 
     # Line colours, when given, must be valid GRASS colour specs that map to a
     # colour matplotlib understands (a named colour or an R:G:B[:A] triplet).
@@ -1981,196 +788,16 @@ def validate_options(options, flags, temporal_type):
             )
 
 
-def decompose_and_fit(
-    regular,
-    period_opt,
-    temporal_type,
-    tinfo,
-    stl_kwargs,
-    trend_trim,
-    show_ols,
-    show_sen,
-    show_gam,
-    gam_direction,
-    frequency=None,
-    step=None,
-    slope_unit="auto",
-    label=None,
-):
-    """Run STL and the trend regressions on one regularized series, with reporting.
-
-    This bundles the period inference, STL decomposition, edge-trim handling,
-    trend regression and the terminal messages so it can be run for one or two
-    datasets. When ``label`` is given (i.e. a second dataset is present) the
-    messages are prefixed with it so the two analyses can be told apart.
-
-    :param pandas.Series regular: regularized, gap-free series
-    :param str period_opt: the period= option value (may be empty)
-    :param str temporal_type: 'absolute' or 'relative'
-    :param dict tinfo: parsed t.info -g output for this dataset
-    :param dict stl_kwargs: keyword arguments forwarded to run_stl()
-    :param str trend_trim: the trend_trim= option value
-    :param bool show_ols: report the OLS line
-    :param bool show_sen: report the Theil-Sen line
-    :param bool show_gam: fit/report the monotone GAM curve
-    :param str gam_direction: GAM monotonic direction option
-    :param str frequency: the frequency= option (absolute time), for the slope
-        reporting-unit conversion
-    :param str step: the step= option (relative time), for the slope
-        reporting-unit conversion
-    :param str slope_unit: the slope_unit= option ('auto','step','day',...)
-    :param str|None label: dataset name used to prefix messages (or None)
-
-    :return tuple: (result, trend_fit) where result is the STL fit and
-        trend_fit is the dict from fit_trend() (or None)
-    """
-    prefix = "[{}] ".format(label) if label else ""
-
-    period = infer_period(
-        regular,
-        period_opt,
-        temporal_type=temporal_type,
-        tinfo=tinfo,
-    )
-    if period >= len(regular):
-        gs.fatal(
-            _(
-                "{pre}Seasonal period ({p}) must be smaller than the number of "
-                "observations ({n}). Use a coarser frequency, more data, or a "
-                "smaller period."
-            ).format(pre=prefix, p=period, n=len(regular))
-        )
-    gs.message(
-        _("{pre}Running STL decomposition (period={p})...").format(pre=prefix, p=period)
-    )
-    result = run_stl(series=regular, period=period, **stl_kwargs)
-
-    # Linear regression of the trend component.
-    # Optionally trim LOESS endpoints first.
-    if trend_trim and trend_trim != "none":
-        tw = effective_trend_window(
-            period, stl_kwargs.get("seasonal"), stl_kwargs.get("trend")
-        )
-        trim = int(round(float(trend_trim) * tw))
-        gs.message(
-            _("{pre}Effective STL trend window: {w} observations.").format(
-                pre=prefix, w=tw
-            )
-        )
-        gs.message(
-            _(
-                "{pre}Trend regression edge trim: {f} x trend window = {t} "
-                "observation(s) dropped from each end."
-            ).format(pre=prefix, f=trend_trim, t=trim)
-        )
-    else:
-        trim = 0
-        gs.message(
-            _("{pre}Trend regression edge trim: none (using full series).").format(
-                pre=prefix
-            )
-        )
-
-    # Fit the trend regressions on the deseasonalized observed series
-    # (trend + residual)
-    deseasonalized = result.trend + result.resid
-
-    # Resolve the slope reporting unit (per day/week/month/year, or per step)
-    # so the reported slopes are independent of the resampling frequency.
-    # Prefer the regularized series' own frequency (set by resample/asfreq) over
-    # the raw frequency= option, which may be empty for already-regular data.
-    eff_frequency = frequency
-    if temporal_type != "relative":
-        series_freq = getattr(regular.index, "freqstr", None)
-        if series_freq:
-            eff_frequency = series_freq
-    scale, unit_label = slope_unit_scale(
-        slope_unit=slope_unit,
-        temporal_type=temporal_type,
-        frequency=eff_frequency,
-        step=step,
-        tinfo=tinfo,
-        n_obs=len(regular),
-    )
-    gs.message(
-        _("{pre}Reporting trend slopes per {u}.").format(pre=prefix, u=unit_label)
-    )
-
-    trend_fit = fit_trend(
-        deseasonalized,
-        trim=trim,
-        fit_gam_curve=show_gam,
-        gam_direction=gam_direction,
-        scale=scale,
-        unit_label=unit_label,
-    )
-    if trend_fit is not None:
-        applied = trend_fit.get("trim", 0)
-        if trim > 0 and applied != trim:
-            # fit_trend fell back (trim too large for the series length).
-            gs.warning(
-                _(
-                    "{pre}Requested edge trim of {req} per side was too large; "
-                    "the regression used {act} per side instead."
-                ).format(pre=prefix, req=trim, act=applied)
-            )
-        n_fit = trend_fit["x_stop"] - trend_fit["x_start"] + 1
-        gs.message(
-            _(
-                "{pre}Trend regression fitted on {n} observations "
-                "(indices {a}-{b}; {t} trimmed from each end)."
-            ).format(
-                pre=prefix,
-                n=n_fit,
-                a=trend_fit["x_start"],
-                b=trend_fit["x_stop"],
-                t=applied,
-            )
-        )
-        if show_ols:
-            gs.message(
-                _("{pre}Trend (OLS): slope={s}, R^2={r:.3f}, p={p:.3g}").format(
-                    pre=prefix,
-                    s=format_slope(trend_fit["slope_report"], unit_label),
-                    r=trend_fit["r2"],
-                    p=trend_fit["pvalue"],
-                )
-            )
-        if show_sen:
-            gs.message(
-                _(
-                    "{pre}Trend (Theil-Sen / Mann-Kendall): slope={s}, "
-                    "tau={t:.3f}, p={p:.3g}"
-                ).format(
-                    pre=prefix,
-                    s=format_slope(trend_fit["sen_slope_report"], unit_label),
-                    t=trend_fit["mk_tau"],
-                    p=trend_fit["mk_pvalue"],
-                )
-            )
-        if show_gam and trend_fit.get("gam") is not None:
-            g = trend_fit["gam"]
-            gs.message(
-                _(
-                    "{pre}Trend (monotone GAM, {d}): net change={c}, "
-                    "explained deviance={r:.3f}"
-                ).format(
-                    pre=prefix,
-                    d=g["direction"],
-                    c=format_slope(g["change"]),
-                    r=g["pseudo_r2"],
-                )
-            )
-
-    return result, trend_fit
-
-
 def main(options, flags):
     """Extract a point series from an strds and run an STL decomposition."""
 
     output = options["output"]
     backend_opt = options["backend"]
     coordinates = options["coordinates"]
+    zone = options["zone"]
+    raster = options["raster"]
+    statistic = options["statistic"]
+    percentile_value = float(options["percentile_value"]) if options["percentile_value"] else None
     strds = options["strds"]
     strds2 = options["strds2"]
     where = options["where"]
@@ -2190,12 +817,19 @@ def main(options, flags):
     trend_jump = options["trend_jump"]
     low_pass_jump = options["low_pass_jump"]
     trend_trim = options["trend_trim"]
+    breakpoints_opt = options["breakpoints"]
     gam_direction = options["gam_direction"]
     slope_unit = options["slope_unit"]
     csv = options["csv"]
     vector = options["vector"]
     plot_dimensions = options["plot_dimensions"]
+    plots = [p for p in options["plots"].split(",") if p] if options["plots"] else []
     dpi = float(options["dpi"]) if options["dpi"] else 300
+    envelope_percentile = None
+    if options["seasonal_envelope"]:
+        envelope_percentile = float(options["seasonal_envelope"])
+        if not 0 <= envelope_percentile < 0.5:
+            gs.fatal(_("The 'seasonal_envelope' option must be >= 0 and < 0.5."))
 
     robust = flags["r"]
     show_ols = flags["o"]
@@ -2204,6 +838,9 @@ def main(options, flags):
     show_band = flags["b"]
     show_stats = flags["t"]
     same_yscale = flags["y"]
+    show_dispersion = flags["d"]
+    hide_outliers = flags["e"]
+    min_pixels = int(options["min_pixels"]) if options["min_pixels"] else None
     line_color = grass_color_to_mpl(options["color"]) if options["color"] else None
     line_color2 = grass_color_to_mpl(options["color2"]) if options["color2"] else None
     fontsize = float(options["fontsize"]) if options["fontsize"] else None
@@ -2220,9 +857,31 @@ def main(options, flags):
     lazy_import_py_modules(backend=backend)
     apply_style(options["style"])
 
-    # Get the point coordinates
-    east, north = coords_from_option(coordinates)
-    gs.message(_("Using point (east, north) = ({}, {})").format(east, north))
+    # Get the sampling location: either a point, or a zone rasterized from a
+    # vector map, or a zone taken from a raster's non-null cells (all pooled
+    # into a single zone).
+    zone_raster = None
+    if zone:
+        validate_zone(zone)
+        zone_raster = make_zone_raster(zone)
+        east, north = zone_bbox_center(zone)
+        gs.message(
+            _("Using zone '{}' ({} statistic; bbox center for tagging: "
+              "east={}, north={}).").format(zone, statistic, east, north)
+        )
+    elif raster:
+        validate_raster(raster)
+        zone_raster = make_raster_zone(raster)
+        east, north = raster_bbox_center(raster)
+        gs.message(
+            _("Using raster '{}' non-null cells ({} statistic; bbox center "
+              "for tagging: east={}, north={}).").format(
+                raster, statistic, east, north
+            )
+        )
+    else:
+        east, north = coords_from_option(coordinates)
+        gs.message(_("Using point (east, north) = ({}, {})").format(east, north))
 
     # Check if the strds exists and read its temporal type.
     try:
@@ -2233,6 +892,11 @@ def main(options, flags):
 
     # Validate option-only requirements up front.
     validate_options(options, flags, temporal_type)
+
+    # Vertical reference lines (dates for absolute time, time steps for
+    # relative time), parsed here (after the temporal type is known) so a bad
+    # value is caught before the expensive sampling step below.
+    vlines = parse_vlines(options["vlines"], options["vlines_labels"], temporal_type)
 
     # Build the list of datasets to analyze. The second strds is optional
     datasets = [(strds, tinfo)]
@@ -2268,21 +932,43 @@ def main(options, flags):
     # Extract -> regularize -> decompose/fit each dataset. When a second dataset
     # is present, its terminal messages are prefixed with its name.
     results = []
+    bands = []
+    envelopes = []
+    excluded_points = []
     for index, (ds_name, ds_tinfo) in enumerate(datasets):
         label = (strds2 and ds_name) or None
-        if index == 0:
-            gs.message(_("Extracting the point time series..."))
-        else:
-            gs.message(
-                _("Extracting the point time series for '{}'...").format(ds_name)
+        if zone_raster:
+            if index == 0:
+                gs.message(_("Extracting the zonal time series..."))
+            else:
+                gs.message(
+                    _("Extracting the zonal time series for '{}'...").format(ds_name)
+                )
+            ds_dates, ds_values, ds_lower, ds_upper, ds_pixel_counts = extract_zonal_series(
+                strds=ds_name,
+                zone_raster=zone_raster,
+                where=where,
+                statistic=statistic,
+                nprocs=nprocs,
+                want_dispersion=show_dispersion,
+                percentile_value=percentile_value,
             )
-        ds_dates, ds_values = extract_series(
-            strds=ds_name,
-            east=east,
-            north=north,
-            where=where,
-            nprocs=nprocs,
-        )
+        else:
+            if index == 0:
+                gs.message(_("Extracting the point time series..."))
+            else:
+                gs.message(
+                    _("Extracting the point time series for '{}'...").format(ds_name)
+                )
+            ds_dates, ds_values = extract_series(
+                strds=ds_name,
+                east=east,
+                north=north,
+                where=where,
+                nprocs=nprocs,
+            )
+            ds_lower = ds_upper = ds_pixel_counts = None
+
         ds_series = build_series(ds_dates, ds_values, temporal_type=temporal_type)
         n_valid = int(ds_series.notna().sum())
         gs.message(
@@ -2298,6 +984,38 @@ def main(options, flags):
                 ).format(ds_name)
             )
 
+        outliers_key = "temporal_outliers" if index == 0 else "temporal_outliers2"
+        ds_outliers = parse_temporal_outliers(options[outliers_key], outliers_key)
+        if ds_outliers is not None:
+            ds_threshold, ds_window = ds_outliers
+            ds_series, ds_excluded = detect_temporal_outliers(
+                ds_series, ds_threshold, ds_window, temporal_type=temporal_type
+            )
+        else:
+            ds_excluded = ds_series.iloc[0:0]
+        if len(ds_excluded):
+            gs.message(
+                _(
+                    "Flagged {n} value(s) in '{d}' as transient temporal "
+                    "outliers (threshold={t}, window={w}); linearly "
+                    "interpolated."
+                ).format(n=len(ds_excluded), d=ds_name, t=ds_threshold, w=ds_window)
+            )
+            # Fill just these dates with linear interpolation now, ahead of
+            # the 'interpolation' method below. An excursion can span many
+            # steps (up to 'window'), and a curvature-fitting method
+            # (quadratic, cubic, spline...) bridging a gap that wide can
+            # overshoot past either neighbour, undoing the whole point of
+            # excluding the outlier by replacing it with a different,
+            # possibly larger artifact. Linear is bounded by its two
+            # neighbours and cannot do that. Genuine gaps (still NaN here)
+            # are left for the chosen 'interpolation' method, unchanged.
+            linear_filled = ds_series.interpolate(
+                method="linear", limit_direction="both"
+            )
+            ds_series.loc[ds_excluded.index] = linear_filled.loc[ds_excluded.index]
+        excluded_points.append(ds_excluded)
+
         gs.message(_("Regularizing the series and interpolating gaps..."))
         ds_regular = regularize(
             series=ds_series,
@@ -2308,7 +1026,78 @@ def main(options, flags):
             step=step,
             tinfo=ds_tinfo,
         )
-        ds_result, ds_trend_fit = decompose_and_fit(
+
+        # The dispersion band (if any) is observed-panel annotation only; it
+        # is regularized onto the same grid as the series but never goes
+        # through decompose_and_fit()/STL.
+        ds_band_lower = ds_band_upper = None
+        if ds_lower is not None:
+            ds_lower_series = build_series(ds_dates, ds_lower, temporal_type=temporal_type)
+            ds_upper_series = build_series(ds_dates, ds_upper, temporal_type=temporal_type)
+            if len(ds_excluded):
+                # Blank the band at the same dates excluded from the main
+                # series, so it is interpolated through them too instead of
+                # still showing the raw (possibly contaminated) pixel spread
+                # at a timestep the series itself no longer shows as data.
+                excluded_dates = ds_lower_series.index.isin(ds_excluded.index)
+                ds_lower_series = ds_lower_series.mask(excluded_dates)
+                ds_upper_series = ds_upper_series.mask(excluded_dates)
+            if min_pixels is not None and ds_pixel_counts is not None:
+                # A spread computed from very few pixels is a poor estimate
+                # and can spike far past the genuine spread -- typically a
+                # near-total-cloud timestep where only a handful of pixels
+                # survive -- even though the mean/median itself (and so
+                # temporal_outliers, which only watches that) looks normal.
+                ds_count_series = build_series(
+                    ds_dates, ds_pixel_counts, temporal_type=temporal_type
+                )
+                low_count_dates = ds_count_series < min_pixels
+                n_low_count = int(low_count_dates.sum())
+                if n_low_count:
+                    gs.message(
+                        _(
+                            "Spread band left out at {n} timestep(s) in '{d}' "
+                            "with fewer than {m} non-null pixels."
+                        ).format(n=n_low_count, d=ds_name, m=min_pixels)
+                    )
+                    ds_lower_series = ds_lower_series.mask(low_count_dates)
+                    ds_upper_series = ds_upper_series.mask(low_count_dates)
+            # Always interpolated linearly, regardless of 'interpolation': a
+            # curvature-fitting method (quadratic, cubic, spline...) can
+            # overshoot past either neighbour when bridging a gap, which for
+            # a dispersion band means manufacturing a bulge wider than the
+            # genuine spread on either side -- most visibly across the
+            # multi-step spans temporal_outliers excludes. Linear is bounded
+            # by its two neighbours and cannot do that.
+            ds_band_lower = regularize(
+                series=ds_lower_series,
+                frequency=frequency,
+                method="linear",
+                order=None,
+                temporal_type=temporal_type,
+                step=step,
+                tinfo=ds_tinfo,
+                report=False,
+            )
+            ds_band_upper = regularize(
+                series=ds_upper_series,
+                frequency=frequency,
+                method="linear",
+                order=None,
+                temporal_type=temporal_type,
+                step=step,
+                tinfo=ds_tinfo,
+                report=False,
+            )
+        bands.append((ds_band_lower, ds_band_upper))
+
+        (
+            ds_result,
+            ds_trend_fit,
+            ds_trend_fit_segments,
+            ds_envelope_lower,
+            ds_envelope_upper,
+        ) = decompose_and_fit(
             ds_regular,
             period_opt,
             temporal_type,
@@ -2323,15 +1112,41 @@ def main(options, flags):
             step=step,
             slope_unit=slope_unit,
             label=label,
+            envelope_percentile=envelope_percentile,
+            breakpoints_opt=breakpoints_opt,
         )
-        results.append((ds_result, ds_trend_fit))
+        results.append((ds_result, ds_trend_fit, ds_trend_fit_segments))
+        envelopes.append((ds_envelope_lower, ds_envelope_upper))
 
-    result, trend_fit = results[0]
-    result2, trend_fit2 = results[1] if len(results) > 1 else (None, None)
+    result, trend_fit, trend_fit_segments = results[0]
+    result2, trend_fit2, trend_fit_segments2 = (
+        results[1] if len(results) > 1 else (None, None, None)
+    )
+    band_lower, band_upper = bands[0]
+    band_lower2, band_upper2 = bands[1] if len(bands) > 1 else (None, None)
+    band_label = None
+    if show_dispersion and zone_raster:
+        band_label = _("± 1 SD") if statistic == "mean" else _("IQR (25-75%)")
+    envelope_lower, envelope_upper = envelopes[0]
+    envelope_lower2, envelope_upper2 = envelopes[1] if len(envelopes) > 1 else (None, None)
+    if hide_outliers:
+        excluded = excluded2 = None
+    else:
+        excluded = excluded_points[0]
+        excluded2 = excluded_points[1] if len(excluded_points) > 1 else None
 
     # Write CSV if requested
     if csv:
-        write_csv(result, csv, temporal_type=temporal_type)
+        write_csv(
+            result,
+            csv,
+            temporal_type=temporal_type,
+            band_lower=band_lower,
+            band_upper=band_upper,
+            statistic=statistic if zone_raster else None,
+            envelope_lower=envelope_lower,
+            envelope_upper=envelope_upper,
+        )
 
     # Create point vector layer if requested.
     if vector:
@@ -2342,7 +1157,10 @@ def main(options, flags):
     if plot_dimensions:
         dimensions = [float(x) for x in plot_dimensions.split(",")]
     else:
-        dimensions = [8, 8]
+        # Default height scales with the number of panels (2 inches each), so
+        # the full four-panel figure stays 8x8 while smaller selections are not
+        # stretched vertically.
+        dimensions = [8, 2 * len(plots)]
     plot_result(
         result=result,
         output=output,
@@ -2352,6 +1170,7 @@ def main(options, flags):
         north=north,
         temporal_type=temporal_type,
         trend_fit=trend_fit,
+        trend_fit_segments=trend_fit_segments,
         show_ols=show_ols,
         show_sen=show_sen,
         show_gam=show_gam,
@@ -2359,6 +1178,7 @@ def main(options, flags):
         show_stats=show_stats,
         result2=result2,
         trend_fit2=trend_fit2,
+        trend_fit_segments2=trend_fit_segments2,
         strds_name=strds,
         strds2_name=strds2,
         same_yscale=same_yscale,
@@ -2367,6 +1187,19 @@ def main(options, flags):
         fontsize=fontsize,
         line_width=line_width,
         title=title,
+        plots=plots,
+        band_lower=band_lower,
+        band_upper=band_upper,
+        band_lower2=band_lower2,
+        band_upper2=band_upper2,
+        band_label=band_label,
+        envelope_lower=envelope_lower,
+        envelope_upper=envelope_upper,
+        envelope_lower2=envelope_lower2,
+        envelope_upper2=envelope_upper2,
+        excluded=excluded,
+        excluded2=excluded2,
+        vlines=vlines,
     )
 
 

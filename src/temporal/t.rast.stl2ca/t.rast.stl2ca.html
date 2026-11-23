@@ -1,0 +1,529 @@
+<h2>DESCRIPTION</h2>
+
+t.rast.stl2ca extracts, for every <b>category</b> of a classification, the time
+series of a space-time raster dataset (STRDS), as the mean, median or other
+statistic of the pixels in that category. It then carries out a <b>STL
+decomposition</b> (Seasonal-Trend decomposition using LOESS) on each category's
+series and draws every category together on one multi-panel plot comparing the
+observed series, <i>trend</i>, <i>seasonal</i> and <i>residual</i> (remainder)
+components. Optionally, a robust Theil-Sen trend regression can be fitted to
+each category's deseasonalized series and drawn on the trend panel.
+
+<p>
+The categories come from either a CELL raster's own cell values (<b>raster</b>),
+or a vector map's features grouped by an attribute column
+(<b>map</b>/<b>layer</b>/<b>column</b>). This can, for example, be a land-cover
+raster, or a vector of administrative units grouped by region name.
+t.rast.stl2ca complements <i><a href="t.rast.stl.md">t.rast.stl</a></i>, which
+can instead compare two <i>datasets</i> sampled at one, manually chosen area;
+use t.rast.stl for that case.
+
+<p>
+The module supports strds with absolute (calendar-dated) or relative
+(integer-stepped) time. Every category's series is regularized onto the same
+evenly spaced time axis, and then run through
+<a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>.
+
+<h3>About STL</h3>
+
+Environmental time series derived from remote sensing, like a vegetation index,
+land surface temperature, snow cover, or soil moisture, are normally composed
+of:
+
+<ul>
+  <li>A repeating <b>seasonal</b> pattern, e.g. vegetation greening up every
+  spring and senescing every autumn;</li>
+  <li>A slower <b>trend</b>, e.g. a multi-year changes such as recovery after a
+  disturbance, or climate change;</li>
+  <li>Short-term <b>residual</b> variation that is left over once season and
+  trend are removed. These include normal day-to-day variation, sensor noise,
+  residual cloud contamination, or one-off events such as a fire or a
+  flood.</li>
+</ul>
+
+<p>
+STL is a procedure that separates these three temporal patterns. It models the
+observed value at each date as <tt>observed = trend + seasonal + residual</tt>.
+
+<p>
+It estimates the trend and seasonal patterns by repeatedly fitting <b>LOESS</b>
+(LOcally Estimated Scatterplot Smoothing) curves. These are flexible local
+regressions that do not assume a fixed global functional shape. STL is robust,
+handles long seasonal cycles, and (in its robust variant) can down-weight
+outliers such as undetected clouds.
+
+<p>
+The module can be run with default settings to explore patterns. The minimum
+input is the strds and either <b>raster</b> or <b>map</b>. If the maps in the
+strds are not regularly spaced, you will need to provide the required frequency
+as well. For more information about this parameter and other fine-tune options,
+see the next section.
+
+<h3>The categories</h3>
+
+Each category is sampled as the mean, median or other statistic of the pixels
+that belong to it, in exactly one of two ways:
+
+<ul>
+  <li><b>raster</b>: a CELL (integer) raster whose distinct cell values are the
+  category codes. There is no per-category breakdown beyond the raster's own
+  values. You need to reclassify it first with
+  <i><a href="r.reclass.md">r.reclass</a></i> if you need a coarser
+  grouping.</li>
+  <li><b>map</b> (with <b>layer</b> and <b>column</b>): a vector map, rasterized
+  and grouped by an attribute column. Every feature becomes its own category by
+  default (<b>column=cat</b>, i.e. not set); giving a different <b>column</b>
+  groups features that share the same value of that column into one category
+  instead, labelled with that value. <b>column</b> can be numeric or text.</li>
+</ul>
+
+<p>
+<b>raster</b> and <b>map</b> are mutually exclusive; exactly one is required.
+
+<p>
+By default every distinct category found is processed. <b>categories</b>
+restricts this to a chosen subset, given as a comma separated list of either the
+category's raw value (<b>raster</b>) or its label (the <b>column</b> value, or
+the raster's own category label if it has one). For example
+<i>categories=1,3</i> or <i>categories=forest,water</i>.
+
+<p>
+Either way, the module samples at the <i>current computational region</i>'s
+resolution. Set the region with <i><a href="g.region.md">g.region</a></i> before
+running if needed. A category with no overlap with the current region, or no
+non-null data at any registered timestep, is skipped with a warning rather than
+aborting the whole run.
+
+<p>
+The per-timestep pixel values within a category are summarized by
+<b>statistic</b>: <tt>mean</tt> (the default), <tt>median</tt>, <tt>min</tt>,
+<tt>max</tt> or <tt>percentile</tt>. <tt>percentile</tt> requires
+<b>percentile_value</b> (0-100). This statistic applies to every category alike,
+so they stay comparable; it cannot be set independently per category. Note that
+<tt>median</tt> and <tt>percentile</tt> require t.rast.univar's
+extended-statistics mode, which can require a lot of memory if used with large
+rasters.
+
+<p>
+The <b>-d</b> flag additionally shades a band around each category's Observed
+series showing the spread of pixel values at each timestep: ±1 standard
+deviation for <tt>mean</tt>, or the interquartile range (25th-75th percentile)
+for <tt>median</tt>. It is only valid with <tt>statistic=mean</tt> or
+<tt>statistic=median</tt>. Gaps in the band (missing timesteps) are always
+filled by linear interpolation, regardless of the <b>interpolation</b> option,
+so a curvature-fitting method chosen for the series itself cannot overshoot and
+bulge the band past its true local range.
+
+<p>
+A standard deviation or interquartile range estimated from very few pixels is
+unreliable and can spike far past the genuine spread, typically on a
+near-total-cloud timestep where only a handful of pixels survive.
+<b>min_pixels</b> guards against this. At timesteps with fewer non-null pixels
+than this, the band is left out there too and filled the same way as any other
+gap.
+
+<h3>Drawing</h3>
+
+Every category gets its own color, from <b>colormap</b> (a
+<a href="https://matplotlib.org/stable/users/explain/colors/colormaps.html">Matplotlib colormap</a>
+name, default <tt>tab10</tt>), with one legend for the whole figure, placed
+below the bottom panel so it never sits on top of a line. Once there are more
+categories than the chosen colormap has distinct colors, a continuous colormap
+(<tt>viridis</tt>) is used instead, sampled evenly across its range (a warning
+names this when it happens). The dispersion band (<b>-d</b>), seasonal envelope
+(<b>seasonal_envelope</b>) and Theil-Sen trend line (<b>-s</b>) are each drawn
+in the category's own color.
+
+<h3>Interactive plot</h3>
+
+The <b>-i</b> flag writes an interactive HTML plot (using
+<a href="https://plotly.com/python/">Plotly</a>, a separate Python package from
+Matplotlib) instead of a static image, with the same panels, colours and legend
+as the static figure. <b>output</b> must then end in <tt>.html</tt>; if
+<b>output</b> is left out, the plot is opened in a browser tab instead of being
+shown in a window. What it adds over the static figure:
+
+<ul>
+  <li>Click a category's legend entry to highlight it. This will cause the other
+  category's lines, across every panel, to fade to a thin grey. You can continue
+  to click other entries to highlight several at once. Clicking a highlighted
+  entry again removes it from the highlight.</li>
+  <li>Dragging across any panel zooms into that time range. Double-click to
+  reset the zoom.</li>
+  <li>Hovering any panel shows the date and category's value at that point, and
+  draws a crosshair through every panel at that date.</li>
+  <li>A "Trend statistics" tab in the top-left corner opens a sidebar holding
+  the same table <b>stats_output</b> writes to a file (see below), whether or
+  not <b>stats_output</b> is actually given.</li>
+</ul>
+
+<p>
+<b>plots</b>, <b>-d</b>, <b>-s</b>, <b>seasonal_envelope</b>, <b>vlines</b>,
+<b>colormap</b>, <b>title</b>, <b>line_width</b> and <b>fontsize</b> all carry
+over unchanged. <b>backend</b>, <b>dpi</b>, <b>plot_dimensions</b> and
+<b>style</b> are Matplotlib-only and are ignored for the HTML plot with a
+warning.
+
+<h3>Absolute vs. relative time</h3>
+
+The tool handles both temporal types of strds. For <b>absolute-time</b> datasets
+the x-axis of the plot is labelled with dates. For <b>relative-time</b> datasets
+the x-axis is labelled "Time step".
+
+<h3>Regularization</h3>
+
+STL requires an evenly spaced, gap-free series. Each category's series is
+therefore resampled onto a regular axis and any gaps are then filled in. Three
+options control this:
+
+<p>
+<b>frequency</b> sets the spacing of the regular axis for absolute-time
+datasets. It is a
+<a href="https://pandas.pydata.org/docs/user_guide/timeseries.html#time-span-representation">pandas offset alias</a>.
+Common choices are <tt>D</tt> (daily), <tt>W</tt> (weekly), <tt>MS</tt> (month
+start), or e.g., <tt>16D</tt> for a 16-day composite series. For absolute-time
+datasets that are already regularly spaced, <b>frequency</b> may be omitted and
+the spacing is inferred. For irregular data you should set it explicitly to fit
+the desired / intended spacing.
+
+<p>
+<b>step</b> sets the spacing for relative-time datasets, as an integer in the
+dataset's own time unit (<b>frequency</b> is ignored for relative-time
+datasets). If <b>step</b> is omitted, the dataset granularity reported by
+<tt>t.info</tt> is used, and the extent of the regular axis is taken from the
+data. Observations that do not fall on a grid node are snapped to the nearest
+node (with a warning), and two observations landing on the same node are
+averaged.
+
+<p>
+<b>interpolation</b> chooses how gaps left after resampling are filled. The
+default is a <tt>linear</tt> interpolation. If gaps are uneven, you might want
+to use the <tt>time</tt> option, which takes into account the actual time
+distance between observations. For the other options, <tt>nearest</tt>,
+<tt>pchip</tt>, <tt>akima</tt>, <tt>cubic</tt>, <tt>quadratic</tt>,
+<tt>spline</tt> and <tt>polynomial</tt>, see the manual page of the Pandas
+<a href="https://pandas.pydata.org/docs/reference/api/pandas.Series.interpolate.html">Series.interpolate</a>
+function, which this module uses for the gap filling.
+
+<p>
+You will normally want to make sure the <b>frequency</b> (or <b>step</b>)
+matches the real sampling of your data. If these are not matching, your data
+will be resampled. For example, setting data that is actually 16-day composites
+to <tt>D</tt> (daily) will create many interpolated points and smoothen the data
+series.
+
+<h3>Decomposition (STL)</h3>
+
+The decomposition wraps <tt>statsmodels.tsa.seasonal.STL</tt>, run with the same
+settings on every category. Its most important parameter is <b>period</b>, which
+is tied to the regularized frequency (or, for relative-time data, the step /
+granularity). It is the number of observations in one full seasonal cycle. For
+example 12 for monthly data, 23 for a 16-day composite series (≈ 365 / 16), or
+365 for daily data with an annual cycle. If <b>period</b> is not given it is
+estimated from the resampled frequency (or, for relative-time data, the dataset
+granularity). Set it explicitly whenever you are unsure the inference will be
+right, or when your cycle is not annual.
+
+<p>
+The remaining STL options fine-tune the LOESS smoothers. For users familiar with
+<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/stl.html">R's stl()</a>
+function, many of these parameters are similar or identical, although the
+defaults may differ.
+
+<p>
+<b>seasonal</b>: length of the seasonal smoother (odd integer ≥ 7). Smaller
+values let the seasonal shape change quickly from cycle to cycle; larger values
+force a more stable, near-constant season. The equivalent parameter in R's stl()
+function is <tt>s.window</tt>.
+
+<p>
+<b>trend</b>: length of the trend smoother (odd integer). Larger values give a
+smoother, stiffer trend that ignores short wiggles; smaller values let the trend
+bend more. If left empty, statsmodels derives a default from the period and
+seasonal window. The equivalent parameter in R's stl() function is
+<tt>t.window</tt>.
+
+<p>
+<b>low_pass</b>: length of the low-pass smoother (odd integer ≥ 3). This is an
+internal step separating season from trend; the default (the smallest odd number
+larger than <b>period</b>) is almost always fine. The equivalent parameter in
+R's stl() function is <tt>l.window</tt>.
+
+<p>
+<b>seasonal_degree</b>, <b>trend_degree</b>, <b>low_pass_degree</b>: the degree
+of the local polynomial each LOESS uses (0 = locally constant, 1 = locally
+linear). statsmodels defaults to 1. R's <tt>stl()</tt> also uses 1 for the trend
+(<tt>t.degree</tt>) and low-pass (<tt>l.degree</tt>) smoothers, but 0 for the
+seasonal smoother (<tt>s.degree</tt>).
+
+<p>
+<b>seasonal_jump</b>, <b>trend_jump</b>, <b>low_pass_jump</b>: control the
+trade-off between speed and accuracy. The LOESS is evaluated every jump
+observations and interpolated in between; 1 (the default) evaluates at every
+point and is the most exact.
+
+<p>
+<b>-r</b> (robust flag): turns on robust fitting, which iteratively down-weights
+outliers. This is worth enabling when residual cloud or sensor spikes are
+distorting the fit.
+
+<h3>Seasonal amplitude envelope</h3>
+
+The <b>seasonal_envelope</b> option draws a rolling envelope of the seasonal
+component on the Seasonal panel, for every category: a moving window one
+seasonal <b>period</b> wide, centered on each point, tracks the local extremes
+of the seasonal cycle. It can be used to show a decrease or increase in the
+amplitude over time (for example, a vegetation index whose greening/senescence
+amplitude strengthens or dampens across years), and to compare that change
+between categories.
+
+<p>
+The value is the fraction trimmed off each end of the window before taking the
+envelope: <tt>seasonal_envelope=0</tt> uses the plain min/max of the window,
+while e.g. <tt>seasonal_envelope=0.1</tt> uses its 10th/90th percentile instead,
+so that one unusually extreme cycle doesn't dominate the envelope. A window that
+doesn't fully fit (the first/last half-period of the series) is left as a gap
+rather than computed from a partial window.
+
+<h3>Trend line and statistics</h3>
+
+Beyond the visual decomposition, the tool quantifies the long-term change in
+each category by fitting a robust Theil-Sen regression (SciPy's
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">theilslopes</a>)
+to its <b>deseasonalized observed</b> series (<tt>trend + residual</tt>,
+equivalently <tt>observed - seasonal</tt>), reported with its slope and a
+monotonic-trend <i>p</i>-value from Kendall's rank-correlation test (SciPy's
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>;
+note that this differs from a full Mann-Kendall test, which applies tie and
+variance corrections, so the reported <i>p</i>-values may differ slightly when
+the data contain ties).
+
+<p>
+The <b>-s</b> flag draws the Theil-Sen line on the trend panel;
+<b>stats_output</b> writes its numbers (slope, Kendall's tau, p-value) to a CSV
+file, one row per category, regardless of <b>-s</b> -- see "Output" below.
+
+<p>
+The slopes are expressed per observation of the regularized series, i.e., per
+step of the chosen <b>frequency</b> (absolute series) or <b>step</b> (relative
+series). For a daily (D) series this is per day; for a 16-day composite (16D) it
+is per 16-day step, for a monthly (MS) series per month, and so on. Use
+<b>slope_unit</b> to express them per a different, readable calendar unit
+instead (day/week/month/year), or <tt>auto</tt> (the default) to pick one from
+the series span.
+
+<p>
+<b>A note on significance.</b> The reported <i>p</i>-value (the Kendall test
+behind Theil-Sen) assumes independent residuals. Deseasonalized environmental
+series are almost always serially autocorrelated, which inflates significance
+(<i>p</i>-values come out too small). The values here therefore do <b>not</b>
+account for serial autocorrelation. So, for a formal inference, you should
+consider a trend-free pre-whitening of the series, or a variance correction such
+as the Hamed–Rao modification of the Mann-Kendall test.
+
+<p>
+The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
+because, near the boundaries, it can only use data from one side. The
+corresponding ends of the deseasonalized series are therefore the least reliable
+and can disproportionately influence the fitted regression. The
+<b>trend_trim</b> option reduces this edge effect by dropping a portion of each
+end before fitting. The trimming amount is specified as a fraction of the
+effective trend window:
+
+<ul>
+  <li><tt>none</tt> (default) uses the whole series;</li>
+  <li><tt>0.1</tt> / <tt>0.25</tt> remove only the outermost, most biased
+  points;</li>
+  <li><tt>0.5</tt> removes the entire theoretically-extrapolated zone (about
+  half the trend window at each end);</li>
+  <li><tt>1</tt> is the most conservative.</li>
+</ul>
+
+<p>
+If you see a fitted line being pulled by an upswing or downswing right at the
+edge of the plot, increasing <b>trend_trim</b> is the appropriate fix.
+
+<h3>Trend breakpoints</h3>
+
+A single Theil-Sen slope over the whole series averages away a real turning
+point, for example a rise, a decline, and a renewed rise. The <b>breakpoints</b>
+option splits the fit of each category into separate segments instead: one or
+more dates (absolute-time) or time steps (relative-time), each starting a new
+segment, with the series' own start and end as the outer boundaries. Each
+segment gets its own row in <b>stats_output</b>, labelled by its date (or step)
+range, and (with <b>-s</b>) its own Theil-Sen line on the plot.
+<b>trend_trim</b> still only trims the series' true start and end; an interior
+breakpoint is not a LOESS edge, so no trim is applied there. Combine
+<b>breakpoints</b> with matching <b>vlines</b> values to also mark them on the
+plot. A segment left with too few observations after trimming (fewer than 4) is
+rejected with an error naming it, rather than silently reporting a
+near-meaningless fit.
+
+<h3>Vertical reference lines</h3>
+
+The <b>vlines</b> option draws one or more dashed vertical reference lines
+across every panel, for example to mark a known event (a fire, flood, land-use
+change, or similar) against the decomposition. Give one or more dates
+(<i>vlines=2019-08-15</i>) for absolute-time <b>strds</b>, or one or more
+integer time steps for relative-time <b>strds</b>; separate multiple values with
+commas (<i>vlines=2015-01-01,2019-08-15</i>). Optional text labels for each line
+can be given with <b>vlines_labels</b>, in the same order and count as
+<b>vlines</b> (<i>vlines_labels=Fire,Flood</i>); they are shown rotated above
+the top panel.
+
+<h3>Output</h3>
+
+By default the multi-panel plot is shown in an interactive window. If
+<b>output</b> is given, the plot is instead saved to that file and the image
+format is taken from the file extension (<tt>.png</tt>, <tt>.pdf</tt>,
+<tt>.svg</tt>, ...). See "Interactive plot" above for the <b>-i</b> flag, which
+writes an HTML plot instead and changes <b>output</b>'s meaning. The rest of
+this section is about the static image. Plot appearance is controlled by
+<b>dpi</b> (resolution, default 300) and <b>plot_dimensions</b> (width,height in
+inches). The <b>style</b> option applies a Matplotlib
+<a href="https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html">style sheet</a>
+to the plot, e.g. <i>style=ggplot</i>. It also accepts the path to a custom
+<a href="https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style">.mplstyle file</a>,
+e.g. to set a thinner <tt>axes.linewidth</tt> than any built-in style does.
+
+<p>
+The <b>plots</b> option selects which of the four panels (observed, trend,
+seasonal, residual) are drawn. By default all four are shown; list a subset to
+leave the others out, for example <i>plots=observed,trend</i> to draw only the
+observed series and its trend. At least one panel is required. The Theil-Sen
+trend line (<b>-s</b>) is only drawn when the trend panel is included. When
+<b>plot_dimensions</b> is not set, the default figure height scales with the
+number of selected panels (about 2 inches each, so the full four-panel figure is
+8x8 inches).
+
+<p>
+The <b>backend</b> option selects the matplotlib rendering backend. You rarely
+need it: <tt>Agg</tt> is chosen automatically when writing to a file, and
+<tt>WXAgg</tt> (an interactive window) when no output file is given. Override it
+only if your system needs a different interactive backend (e.g. <tt>TkAgg</tt>,
+<tt>Qt5Agg</tt>).
+
+<p>
+<b>stats_output</b>, when given, writes the Theil-Sen/Kendall trend statistics
+(slope, tau, p-value, the reporting unit, number of observations fitted) to a
+CSV file, one row per category -- and one row per <b>breakpoints</b> segment,
+when given, in addition to the whole-series row. This is independent of
+<b>-s</b>: the statistics are computed either way, this option just decides
+whether they are written out. With <b>-i</b>, the same table is also always
+shown in the HTML output, in a sidebar opened from the "Trend statistics" tab --
+see "Interactive plot" above -- whether or not <b>stats_output</b> is given.
+
+<h3>Subsetting and performance</h3>
+
+The <b>where</b> option accepts a temporal WHERE clause (as used by other
+<tt>t.*</tt> modules) to restrict the analysis to a subset of timestamps, for
+example a particular range of years. Note that in the interactive plot, you can
+plot the whole range and select the range you are interested in in the plot (see
+above).
+
+<p>
+The <b>nprocs</b> option sets the number of parallel processes
+<i><a href="t.rast.univar.md">t.rast.univar</a></i> uses for the zonal
+extraction, which covers every category in one call; this can make the module
+substantially faster to run, but setting it higher than the number of CPU cores
+available just adds contention rather than speed. The main per-run cost is
+<i>t.rast.univar</i> itself, which runs once per registered map in <b>strds</b>
+(filtered by <b>where</b>, if given): a strds with very many registered maps can
+take a while regardless of region size or category count, since the dominant
+cost is then the number of maps, not the number of pixels. The module
+automatically shrinks the region it samples at to the categories' own extent
+first (see "The categories" above), which helps substantially when the
+categories occupy only a small part of a much larger current region, but does
+not reduce the per-map cost of a strds with many registered maps.
+
+<h2>NOTES</h2>
+
+This addon requires the Python packages <i>numpy</i>, <i>pandas</i>,
+<i>scipy</i>, <i>matplotlib</i> and <i>statsmodels</i>. They are all
+pip-installable, e.g.
+
+<div class="code">
+  <pre>
+pip install numpy pandas scipy matplotlib statsmodels
+</pre>
+</div>
+
+<p>
+If a dependency is missing the module exits with a message indicating which
+package to install. The <b>-i</b> (interactive HTML plot) flag additionally
+needs <i>plotly</i> (<tt>pip install plotly</tt>), checked only when <b>-i</b>
+is actually used -- an ordinary run never needs it installed.
+
+<ul>
+  <li><b>pandas</b> builds the time-indexed series, resamples it onto the
+  regular axis (<tt>Series.resample</tt>) and fills gaps
+  (<tt>Series.interpolate</tt>).</li>
+  <li><b>statsmodels</b> performs the STL decomposition
+  (<a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>),
+  splitting each series into trend, seasonal and residual components.</li>
+  <li><b>scipy</b> fits the robust Theil-Sen trend line
+  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>)
+  and the monotonic-trend <i>p</i>-value from Kendall's rank correlation
+  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
+  <li><b>numpy</b> provides the array operations underlying the above, and
+  <b>matplotlib</b> renders the multi-panel plot.</li>
+</ul>
+
+<p>
+Not every option of <i><a href="t.rast.stl.md">t.rast.stl</a></i> is available
+here: there is no second strds (<b>strds2</b>), no OLS trend line on the plot
+(<b>-o</b>), no monotone GAM trend curve
+(<b>-g</b>/<b>-b</b>/<b>gam_direction</b>), no point-vector output
+(<b>vector</b>), and no transient temporal-outlier filter
+(<b>temporal_outliers</b>) -- all of these would need to be meaningful across an
+arbitrary number of categories rather than one or two fixed areas; some may
+return in a future version.
+
+<h2>EXAMPLES</h2>
+
+TODO
+
+<h2>SEE ALSO</h2>
+
+<i><a href="t.rast.stl.md">t.rast.stl</a>,
+<a href="t.rast.line.md">t.rast.line</a>,
+<a href="t.rast.univar.md">t.rast.univar</a>,
+<a href="v.to.rast.md">v.to.rast</a>, <a href="r.reclass.md">r.reclass</a></i>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>Cleveland, R. B., Cleveland, W. S., McRae, J. E., &amp; Terpenning, I.
+  (1990). STL: a seasonal-trend decomposition procedure based on loess.
+  <i>Journal of Official Statistics</i>, 6, 3–73:
+  <a href="https://www.math.unm.edu/~lil/Stat581/STL.pdf">STL paper (PDF)</a>.</li>
+  <li>Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1):
+  Decomposition and Baseline Models. <i>Towards Data Science</i>
+  <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models">Part I article</a>.</li>
+  <li>Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2):
+  Customizing Baseline Models. <i>Towards Data Science</i>
+  <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part II article</a>.</li>
+  <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
+  for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
+  <li>Local regression. (2026). In <i>Wikipedia</i>
+  <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
+  <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and
+  Statistical Modeling with Python. SciPy 2010.
+  &lt;https://doi.org/10.25080/Majora-92bf1922-011&gt;</li>
+  <li>statsmodels. (2025). <i>Statsmodels</i> (Version 0.14.6) [Python]
+  <a href="https://github.com/statsmodels/statsmodels/">statsmodels repository</a>.</li>
+  <li>Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T.,
+  Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Van Der
+  Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R.
+  J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0:
+  Fundamental algorithms for scientific computing in Python. Nature Methods,
+  17(3), 261–272. &lt;https://doi.org/10.1038/s41592-019-0686-2&gt;</li>
+</ul>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative Biomonitoring</a>
+and
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust Landscapes</a>
+research groups at the <a href="https://has.nl">HAS green academy</a>
