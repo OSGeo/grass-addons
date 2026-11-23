@@ -185,6 +185,15 @@ jobs:
           SRC_GRASS=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
           DST_DIR="$(cygpath -u $GITHUB_WORKSPACE)/addons"
 
+          # The CPU architecture GRASS is compiled for is the first part of
+          # the host type determined by configure (x86_64-w64-mingw32).
+          arch=$(sed -n '/^ARCH[ \t]*=/{s/^.*=[ \t]*//; s/-.*//; p}' \
+              ${SRC_GRASS}/include/Make/Platform.make)
+          if [ -z "${arch}" ]; then
+            echo "::error::Cannot determine the CPU architecture of GRASS"
+            exit 1
+          fi
+
           export PATH=/c/OSGeo4W/bin:/usr/bin:/mingw64/bin
           export PYTHONHOME=/c/OSGeo4W/apps/Python312
 
@@ -215,6 +224,7 @@ jobs:
             echo "grass_version=${GRASS_VERSION}"
             echo "grass_ref=${GRASS_REF}"
             echo "grass_commit=${GRASS_COMMIT}"
+            echo "arch=${arch}"
             echo "addons_commit=${GITHUB_SHA}"
             echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } > build-info.txt
@@ -271,19 +281,21 @@ jobs:
             # build-info.txt is written at the very end of a build, so an
             # artifact without it comes from a build which failed.
             version=""
+            arch=""
             if [[ -f "${dir}build-info.txt" ]]; then
               version="$(sed -n 's/^grass_version=//p' "${dir}build-info.txt")"
+              arch="$(sed -n 's/^arch=//p' "${dir}build-info.txt")"
             fi
-            if [[ -z "${version}" ]]; then
+            if [[ -z "${version}" || -z "${arch}" ]]; then
               echo "::warning::Skipping the incomplete build in ${dir}"
               continue
             fi
             # The addons are already compressed, so they are only stored.
             # The name says what the file is when it is downloaded by hand
-            # and carries the distribution the addons are compiled for, so
-            # that bundles for other, incompatible builds of the same GRASS
-            # version can be added later.
-            bundle="grass-${version}-addons-windows-osgeo4w.zip"
+            # and carries the distribution and the CPU architecture the
+            # addons are compiled for, so that bundles for other, incompatible
+            # builds of the same GRASS version can be added later.
+            bundle="grass-${version}-addons-windows-osgeo4w-${arch}.zip"
             (cd "${dir}" && zip -q -r -0 "${bundles}/${bundle}" .)
             (cd "${bundles}" && sha256sum "${bundle}" > "${bundle}.sha256")
           done
