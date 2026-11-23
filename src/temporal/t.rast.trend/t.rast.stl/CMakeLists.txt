@@ -4,6 +4,12 @@ project(t.rast.stl LANGUAGES NONE)
 
 include(build_addon)
 
+add_files_to_etc_dir(
+  ${PROJECT_NAME}
+  FILES
+    extract.py
+    plot.py)
+
 build_addon(
   ${PROJECT_NAME}
   SOURCES ${PROJECT_NAME}.py

@@ -25,7 +25,7 @@ import os
 
 import grass.script as gs
 
-from trend import format_slope
+from trendlib.trend import format_slope
 
 if not callable(globals().get("_")):
     from gettext import gettext as _
@@ -80,8 +80,7 @@ def parse_vlines(vlines_opt, labels_opt, temporal_type):
             except ValueError:
                 gs.fatal(
                     _(
-                        "Could not parse 'vlines' value '{}' as an integer "
-                        "time step."
+                        "Could not parse 'vlines' value '{}' as an integer time step."
                     ).format(value)
                 )
         else:
@@ -276,12 +275,21 @@ def draw_trend_lines(
                 linewidth=0,
                 zorder=1,
             )
+        gam_name = "GAM" if gam["direction"] == "none" else "Monotone GAM"
         if with_stats:
-            lbl = "Monotone GAM ({}, change = {}){}".format(
-                gam["direction"], format_slope(gam["change"]), label_suffix
-            )
+            if gam["direction"] == "none":
+                lbl = "{} (change = {}){}".format(
+                    gam_name, format_slope(gam["change"]), label_suffix
+                )
+            else:
+                lbl = "{} ({}, change = {}){}".format(
+                    gam_name,
+                    gam["direction"],
+                    format_slope(gam["change"]),
+                    label_suffix,
+                )
         else:
-            lbl = "Monotone GAM" + label_suffix
+            lbl = gam_name + label_suffix
         (h,) = ax.plot(
             gidx,
             gam["fitted"],
@@ -311,7 +319,7 @@ def draw_trend_lines_for_dataset(
 
     With ``trend_fit_segments`` (the breakpoints= option), the OLS/Theil-Sen
     lines are drawn once per segment, each labelled with its own date/step
-    range; the monotone GAM curve, if requested, is still drawn once from
+    range; the GAM curve, if requested, is still drawn once from
     ``trend_fit``, since it is always fit on the whole series regardless of
     breakpoints_opt. Without ``trend_fit_segments`` this is a plain,
     unsegmented call to draw_trend_lines() for ``trend_fit``, same as before

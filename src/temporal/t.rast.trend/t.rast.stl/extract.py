@@ -155,7 +155,9 @@ def make_raster_zone(raster):
             quiet=True,
         )
     except CalledModuleError:
-        gs.fatal(_("Could not derive the sampling area from raster '{}'.").format(raster))
+        gs.fatal(
+            _("Could not derive the sampling area from raster '{}'.").format(raster)
+        )
     clean_rasters.append(zone_raster)
 
     stats = gs.parse_command("r.univar", flags="g", map=zone_raster)
@@ -427,7 +429,9 @@ def extract_zonal_series(
     lowers = [] if want_dispersion else None
     uppers = [] if want_dispersion else None
     counts = [] if want_dispersion else None
-    width = max(start_idx, value_idx, lower_idx or 0, upper_idx or 0, count_idx or 0) + 1
+    width = (
+        max(start_idx, value_idx, lower_idx or 0, upper_idx or 0, count_idx or 0) + 1
+    )
     for ln in lines[1:]:
         cols = ln.split("|")
         if len(cols) < width:
@@ -447,7 +451,9 @@ def extract_zonal_series(
             else:
                 lowers.append(parse_zonal_token(cols[lower_idx]))
                 uppers.append(parse_zonal_token(cols[upper_idx]))
-            count = parse_zonal_token(cols[count_idx]) if count_idx is not None else None
+            count = (
+                parse_zonal_token(cols[count_idx]) if count_idx is not None else None
+            )
             counts.append(int(count) if count is not None else None)
 
     if not dates:
@@ -743,7 +749,9 @@ def regularize(
             )
         if report:
             gs.message(
-                _("Inferred a regular frequency of '{}' from the data.").format(inferred)
+                _("Inferred a regular frequency of '{}' from the data.").format(
+                    inferred
+                )
             )
         resampled = series.asfreq(inferred)
 

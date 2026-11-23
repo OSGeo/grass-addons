@@ -263,14 +263,14 @@
 # %flag
 # % key: g
 # % label: GAM trend curve
-# % description: Add a shape-constrained (monotone) Generalized Additive Model trend curve (pyGAM) to the trend panel. Requires the 'pygam' package.
+# % description: Add a Generalized Additive Model trend curve (pyGAM) to the trend panel, shape-constrained (monotone) unless gam_direction=none. Requires the 'pygam' package.
 # % guisection: Trend line
 # %end
 
 # %flag
 # % key: b
 # % label: GAM confidence band
-# % description: Shade the 95% confidence band of the monotone GAM curve (only used together with -g).
+# % description: Shade the 95% confidence band of the GAM curve (only used together with -g).
 # % guisection: Trend line
 # %end
 
@@ -285,8 +285,8 @@
 # % key: gam_direction
 # % type: string
 # % label: GAM monotonic direction
-# % description: Direction of the monotonicity constraint for the GAM trend curve. 'auto' picks increasing or decreasing from the sign of the Theil-Sen slope.
-# % options: auto,increasing,decreasing
+# % description: Direction of the monotonicity constraint for the GAM trend curve. 'auto' picks increasing or decreasing from the sign of the Theil-Sen slope. 'none' fits an unconstrained smooth curve instead.
+# % options: auto,increasing,decreasing,none
 # % answer: auto
 # % required: no
 # % guisection: Trend line
@@ -318,7 +318,7 @@
 # % key: breakpoints
 # % type: string
 # % label: Trend regression breakpoints
-# % description: Date(s) (absolute-time strds) or time step(s) (relative-time strds) splitting the trend regression into separate segments, e.g. to report the slope before and after a known change rather than one slope that averages over it. Each value starts a new segment; the series' own start and end always count as the outer segment boundaries. Comma separated for multiple breakpoints. Only the OLS/Theil-Sen lines (-o/-s) are fit per segment; the monotone GAM curve (-g), if requested, is still fit on the whole series. 'trend_trim' only trims the series' true start/end, not an interior breakpoint (which is not a LOESS edge). Combine with 'vlines' (same dates/steps) to also mark the breakpoints on the plot.
+# % description: Date(s) (absolute-time strds) or time step(s) (relative-time strds) splitting the trend regression into separate segments, e.g. to report the slope before and after a known change rather than one slope that averages over it. Each value starts a new segment; the series' own start and end always count as the outer segment boundaries. Comma separated for multiple breakpoints. Only the OLS/Theil-Sen lines (-o/-s) are fit per segment; the GAM curve (-g), if requested, is still fit on the whole series. 'trend_trim' only trims the series' true start/end, not an interior breakpoint (which is not a LOESS edge). Combine with 'vlines' (same dates/steps) to also mark the breakpoints on the plot.
 # % multiple: yes
 # % required: no
 # % guisection: Trend line
@@ -536,18 +536,22 @@ from grass.script.utils import set_path
 if not callable(globals().get("_")):
     from gettext import gettext as _
 
-# extract.py/trend.py/plot.py: this module's own library files (see the
-# ETCFILES entry in the Makefile), split out because this script had grown
-# past a comfortable single-file size. set_path() finds them whether this
-# script is run from its installed location or straight from the source
-# tree. Each library file leaves its own numpy/pandas/matplotlib/statsmodels/
-# scipy names as None at import time (set below, by lazy_import_py_modules(),
-# once GRASS has parsed the command line) so a plain module scan
-# (--help, g.extension) never needs the scientific stack installed.
+# extract.py/plot.py: this module's own library files (see the ETCFILES
+# entry in the Makefile), split out because this script had grown past a
+# comfortable single-file size. trend.py is instead shared with
+# t.rast.stl2ca via the trendlib library of the t.rast.trend bundle both
+# addons are installed under (see t.rast.trend/trendlib and its own
+# Makefile). set_path() finds both whether this script is run from its
+# installed location or straight from the source tree. Each library
+# module leaves its own numpy/pandas/matplotlib/statsmodels/scipy names as
+# None at import time (set below, by lazy_import_py_modules(), once GRASS
+# has parsed the command line) so a plain module scan (--help,
+# g.extension) never needs the scientific stack installed.
 set_path("t.rast.stl")
+set_path(modulename="t.rast.trend", dirname="trendlib", path="..")
 import extract  # noqa: E402
-import trend  # noqa: E402
 import plot  # noqa: E402
+from trendlib import trend  # noqa: E402
 from extract import (  # noqa: E402
     clean_dirs,
     clean_rasters,
@@ -565,7 +569,7 @@ from extract import (  # noqa: E402
     detect_temporal_outliers,
     regularize,
 )
-from trend import (  # noqa: E402
+from trendlib.trend import (  # noqa: E402
     decompose_and_fit,
     write_csv,
     write_point_vector,
@@ -683,7 +687,9 @@ def validate_options(options, flags, temporal_type):
     statistic = options["statistic"]
     if statistic == "percentile" and not options["percentile_value"]:
         gs.fatal(
-            _("The 'percentile_value' option is required when 'statistic' is 'percentile'.")
+            _(
+                "The 'percentile_value' option is required when 'statistic' is 'percentile'."
+            )
         )
     if flags["d"] and statistic not in ("mean", "median"):
         gs.fatal(
@@ -775,13 +781,13 @@ def validate_options(options, flags, temporal_type):
                     ).format(k=key, v=options[key])
                 )
 
-    # The monotone GAM curve (-g) needs pygam. Check up front so the module
-    # fails fast here rather than after the expensive t.rast.what sampling.
+    # The GAM curve (-g) needs pygam. Check up front so the module fails
+    # fast here rather than after the expensive t.rast.what sampling.
     if flags.get("g"):
         if importlib.util.find_spec("pygam") is None:
             gs.fatal(
                 _(
-                    "The Python package 'pygam' is required for the monotone "
+                    "The Python package 'pygam' is required for the "
                     "GAM trend curve (flag -g) but is not installed. Install it "
                     "with e.g. 'pip install pygam', or drop the -g flag."
                 )
@@ -797,7 +803,9 @@ def main(options, flags):
     zone = options["zone"]
     raster = options["raster"]
     statistic = options["statistic"]
-    percentile_value = float(options["percentile_value"]) if options["percentile_value"] else None
+    percentile_value = (
+        float(options["percentile_value"]) if options["percentile_value"] else None
+    )
     strds = options["strds"]
     strds2 = options["strds2"]
     where = options["where"]
@@ -866,18 +874,20 @@ def main(options, flags):
         zone_raster = make_zone_raster(zone)
         east, north = zone_bbox_center(zone)
         gs.message(
-            _("Using zone '{}' ({} statistic; bbox center for tagging: "
-              "east={}, north={}).").format(zone, statistic, east, north)
+            _(
+                "Using zone '{}' ({} statistic; bbox center for tagging: "
+                "east={}, north={})."
+            ).format(zone, statistic, east, north)
         )
     elif raster:
         validate_raster(raster)
         zone_raster = make_raster_zone(raster)
         east, north = raster_bbox_center(raster)
         gs.message(
-            _("Using raster '{}' non-null cells ({} statistic; bbox center "
-              "for tagging: east={}, north={}).").format(
-                raster, statistic, east, north
-            )
+            _(
+                "Using raster '{}' non-null cells ({} statistic; bbox center "
+                "for tagging: east={}, north={})."
+            ).format(raster, statistic, east, north)
         )
     else:
         east, north = coords_from_option(coordinates)
@@ -944,14 +954,16 @@ def main(options, flags):
                 gs.message(
                     _("Extracting the zonal time series for '{}'...").format(ds_name)
                 )
-            ds_dates, ds_values, ds_lower, ds_upper, ds_pixel_counts = extract_zonal_series(
-                strds=ds_name,
-                zone_raster=zone_raster,
-                where=where,
-                statistic=statistic,
-                nprocs=nprocs,
-                want_dispersion=show_dispersion,
-                percentile_value=percentile_value,
+            ds_dates, ds_values, ds_lower, ds_upper, ds_pixel_counts = (
+                extract_zonal_series(
+                    strds=ds_name,
+                    zone_raster=zone_raster,
+                    where=where,
+                    statistic=statistic,
+                    nprocs=nprocs,
+                    want_dispersion=show_dispersion,
+                    percentile_value=percentile_value,
+                )
             )
         else:
             if index == 0:
@@ -1032,8 +1044,12 @@ def main(options, flags):
         # through decompose_and_fit()/STL.
         ds_band_lower = ds_band_upper = None
         if ds_lower is not None:
-            ds_lower_series = build_series(ds_dates, ds_lower, temporal_type=temporal_type)
-            ds_upper_series = build_series(ds_dates, ds_upper, temporal_type=temporal_type)
+            ds_lower_series = build_series(
+                ds_dates, ds_lower, temporal_type=temporal_type
+            )
+            ds_upper_series = build_series(
+                ds_dates, ds_upper, temporal_type=temporal_type
+            )
             if len(ds_excluded):
                 # Blank the band at the same dates excluded from the main
                 # series, so it is interpolated through them too instead of
@@ -1128,7 +1144,9 @@ def main(options, flags):
     if show_dispersion and zone_raster:
         band_label = _("± 1 SD") if statistic == "mean" else _("IQR (25-75%)")
     envelope_lower, envelope_upper = envelopes[0]
-    envelope_lower2, envelope_upper2 = envelopes[1] if len(envelopes) > 1 else (None, None)
+    envelope_lower2, envelope_upper2 = (
+        envelopes[1] if len(envelopes) > 1 else (None, None)
+    )
     if hide_outliers:
         excluded = excluded2 = None
     else:

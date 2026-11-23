@@ -7,8 +7,8 @@ decomposition using LOESS) and produces a multi-panel plot of the observed
 series together with its *trend*, *seasonal* and *residual* (remainder)
 components. Optionally, one or more trend regressions can be fitted to the
 deseasonalized series and drawn on the trend panel, including an ordinary
-least-squares (OLS) line, a robust Theil-Sen line, and/or a shape-constrained
-(monotone) Generalized Additive Model (GAM) curve.
+least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized
+Additive Model (GAM) curve, shape-constrained (monotone) by default.
 
 The module strds with absolute (calendar-dated) or relative (integer-stepped)
 time. For a point (**coordinates**) it samples the pixel value at every
@@ -289,7 +289,7 @@ variance corrections. The reported *p*-values may therefore differ slightly when
 the data contain ties.
 
 Which line(s) appear on the trend panel is controlled by flags: **-o** draws the
-OLS line, **-s** draws the Theil-Sen line, and **-g** draws a monotone GAM curve
+OLS line, **-s** draws the Theil-Sen line, and **-g** draws a GAM curve
 (see below). Note that the Theil-Sen slope with the non-parametric Kendall test
 is more resistant to outliers and does not assume normal residuals.
 
@@ -297,15 +297,18 @@ The **-t** flag adds the trend-line statistics (slope, R², Mann-Kendall
 *p*-value, and GAM net change) to the legend. The statistics are always printed
 to the terminal regardless of this flag.
 
-The third fit, enabled with **-g**, is a shape-constrained (monotone)
-**Generalized Additive Model** fitted with
-[pyGAM](https://pygam.readthedocs.io/). It is a smooth, flexible curve, but
-constrained to never reverse direction. The **gam_direction** option sets the
-constraint direction: `increasing`, `decreasing`, or `auto` (the default, which
-picks the direction from the sign of the Theil-Sen slope). The GAM is summarised
-by its **net change** (fitted value at the last point minus the first, over the
-fitted span) and the **explained deviance**. The **-b** flag additionally shades
-the GAM's 95% confidence band.
+The third fit, enabled with **-g**, is a **Generalized Additive Model** fitted
+with [pyGAM](https://pygam.readthedocs.io/): a smooth, flexible curve. By
+default it is shape-constrained to a monotone curve that never reverses
+direction; the **gam_direction** option sets the constraint direction:
+`increasing`, `decreasing`, `auto` (the default, which picks the direction
+from the sign of the Theil-Sen slope), or `none`, which fits an unconstrained
+curve free to change direction, with its smoothing chosen by
+cross-validation. The GAM is summarised by its **net change** (fitted value
+at the last point minus the first, over the fitted span) and the **explained
+deviance**; for an unconstrained (`none`) fit, net change describes only the
+overall shift between the endpoints, not the shape of the curve in between.
+The **-b** flag additionally shades the GAM's 95% confidence band.
 
 The slopes (OLS, Theil-Sen) and the GAM net change are expressed per observation
 of the regularized series, i.e., per step of the chosen **frequency** (absolute
@@ -349,7 +352,7 @@ each starting a new segment, with the series' own start and end as the
 outer boundaries. Each segment is reported and drawn with its own
 slope/R²/*p*, labelled by its date (or step) range. **trend_trim** still only
 trims the series' true start and end; an interior breakpoint is not a LOESS
-edge, so no trim is applied there. The monotone GAM curve (**-g**), if
+edge, so no trim is applied there. The GAM curve (**-g**), if
 requested, is always fit on the whole series regardless of **breakpoints**,
 since forcing it through artificial kinks would defeat its point. Combine
 **breakpoints** with matching **vlines** values to also mark them on the
@@ -404,7 +407,7 @@ columns.
 
 The **vector** option creates a point vector layer carrying the trend
 regression results (OLS slope, R², *p*-value, Theil-Sen slope, Mann-Kendall
-tau and *p*-value) as attributes. When a monotone GAM was fitted (**-g**), its
+tau and *p*-value) as attributes. When a GAM was fitted (**-g**), its
 net change and explained deviance are stored as well. With **coordinates**
 the point is at the selected location; with **zone** or **raster** it is
 placed at the center of the zone's or raster's bounding box (a tag for the
@@ -447,7 +450,8 @@ the module works without it. The following packages are required:
   ([scipy.stats.theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html)),
   and the monotonic-trend *p*-value from Kendall's rank correlation
   ([scipy.stats.kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
-- **pygam** fits the optional shape-constrained (monotone) GAM curve
+- **pygam** fits the optional GAM curve, by default shape-constrained
+  (monotone)
   ([LinearGAM](https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html)).
 - **numpy** provides the array operations underlying the above, and
   **matplotlib** renders the multi-panel plot.
@@ -568,6 +572,15 @@ series (`trend + residual`), so the confidence band reflects the genuine
 short-term scatter. Keep in mind that the reported *p*-values do not account for
 serial autocorrelation (see the trend regression section above).
 
+When the trajectory is not expected to be one-directional, set
+`gam_direction=none` to drop the monotonicity constraint and let the curve
+follow reversals in the data:
+
+```sh
+t.rast.stl -gb strds=tempmean coordinates=636000,221000 gam_direction=none \
+output=t_rast_stl_05b.png
+```
+
 ### Mark known events with vertical reference lines
 
 Use **vlines** (with **vlines_labels**) to mark one or more known dates, such
@@ -646,7 +659,8 @@ shared y-axis.
 
 ## SEE ALSO
 
-*[t.rast.line](t.rast.line.md),
+*[t.rast.trend](t.rast.trend.md), [t.rast.stl2ca](t.rast.stl2ca.md),
+[t.rast.line](t.rast.line.md),
 [t.rast.what](t.rast.what.md),[t.rast.univar](t.rast.univar.md)*
 
 ## REFERENCES
@@ -666,13 +680,12 @@ shared y-axis.
 - Local regression. (2026). In *Wikipedia*
   [Wikipedia local regression article](https://en.wikipedia.org/wiki/Local_regression).
 - Seabold, S., & Perktold, J. (2010). Statsmodels: Econometric and Statistical
-  Modeling with Python. SciPy 2010. https://doi.org/10.25080/Majora-92bf1922-011
+  Modeling with Python. SciPy 2010. <https://doi.org/10.25080/Majora-92bf1922-011>
 - Servén, D., & Brummitt, C. (2018). pyGAM: Generalized Additive Models in
   Python. *Zenodo*. [pyGAM documentation](https://pygam.readthedocs.io/).
 - statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
   [statsmodels repository](https://github.com/statsmodels/statsmodels/).
-- Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Van Der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. Nature Methods, 17(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
-
+- Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Van Der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. Nature Methods, 17(3), 261–272. <https://doi.org/10.1038/s41592-019-0686-2>
 
 ## AUTHOR
 

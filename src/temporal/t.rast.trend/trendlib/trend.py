@@ -1,19 +1,12 @@
 ############################################################################
 #
-# MODULE:       t.rast.stl2ca (library)
+# MODULE:       t.rast.trend / trendlib (library)
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      STL decomposition and trend-regression helpers for
-#               t.rast.stl2ca: period/window inference, running statsmodels
-#               STL, the OLS/Theil-Sen/monotone-GAM trend fits and their
-#               reporting-unit conversion, and the CSV/vector output
-#               writers.
-#
-#               Originally split out of t.rast.stl; t.rast.stl2ca keeps its
-#               own copy since each GRASS addon is installed independently.
-#               t.rast.stl2ca's own driver script does not expose the GAM
-#               trend curve or the CSV/vector output, but leaves that code
-#               here rather than trimming it, to keep this file a faithful
-#               copy of t.rast.stl's.
+# PURPOSE:      STL decomposition and trend-regression helpers shared by
+#               t.rast.stl and t.rast.stl2ca: period/window inference,
+#               running statsmodels STL, the OLS/Theil-Sen/GAM trend fits
+#               and their reporting-unit conversion, and the CSV/vector
+#               output writers.
 #
 # COPYRIGHT:    (c) 2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -22,11 +15,12 @@
 #
 #############################################################################
 
-"""STL decomposition, trend regression and their output for t.rast.stl2ca.
+"""STL decomposition, trend regression and their output, shared by
+t.rast.stl and t.rast.stl2ca.
 
-np/pd/STL/linregress/theilslopes/kendalltau are set by
-t.rast.stl2ca.lazy_import_py_modules() -- after GRASS parses the command line
--- rather than imported here, so a plain module scan (--help, g.extension)
+np/pd/STL/linregress/theilslopes/kendalltau are set by each driver script's
+own lazy_import_py_modules() -- after GRASS parses the command line --
+rather than imported here, so a plain module scan (--help, g.extension)
 never needs numpy/pandas/statsmodels/scipy installed.
 """
 
@@ -36,7 +30,8 @@ from grass.exceptions import CalledModuleError
 if not callable(globals().get("_")):
     from gettext import gettext as _
 
-# Set by t.rast.stl2ca.lazy_import_py_modules() before any function below runs.
+# Set by the driver script's lazy_import_py_modules() before any function
+# below runs.
 np = None
 pd = None
 STL = None
@@ -46,7 +41,7 @@ kendalltau = None
 
 
 def lazy_import_pygam():
-    """Lazy import of pyGAM, only needed when the monotone GAM curve is requested.
+    """Lazy import of pyGAM, only needed when the GAM trend curve is requested.
 
     :return tuple: (LinearGAM, s) classes/functions from pygam
     """
@@ -57,7 +52,7 @@ def lazy_import_pygam():
     except ImportError as e:
         gs.fatal(
             _(
-                "The Python package 'pygam' is required for the monotone GAM "
+                "The Python package 'pygam' is required for the GAM "
                 "trend curve (flag -g) but could not be imported ({err}). "
                 "Install it with e.g. 'pip install pygam', or drop the -g "
                 "flag."
@@ -572,92 +567,22 @@ def write_csv(
     gs.message(_("Components written to {}").format(csv_path))
 
 
-def trend_stats_rows(categories):
-    """Build one combined list of trend-statistics rows, one per category.
-
-    Shared by write_trend_stats_csv() (below) and interactive.py's HTML
-    stats table, so the two always report the same numbers the same way.
-
-    A category fit with 'trend_fit_segments' (the breakpoints= option) gets
-    one row per segment, each naming its own date/step range in the
-    'segment' column, in addition to -- not instead of -- its whole-series
-    row (segment=''); a category without breakpoints_opt has just the one,
-    whole-series row.
-
-    :param list categories: one dict per category, each with 'label' (str),
-        'trend_fit' (trend.fit_trend() dict or None) and
-        'trend_fit_segments' (list of (fit dict, segment label) pairs, or
-        None), i.e. the same per-category dicts plot.plot_result() takes.
-    :return list: dicts with keys category/segment/n_obs/unit/sen_slope/
-        mk_tau/mk_pvalue
-    """
-    rows = []
-    for category in categories:
-        trend_fit = category.get("trend_fit")
-        if trend_fit is not None:
-            rows.append(_trend_stats_row(category["label"], "", trend_fit))
-        for seg_fit, seg_label in category.get("trend_fit_segments") or []:
-            rows.append(_trend_stats_row(category["label"], seg_label.strip(), seg_fit))
-    return rows
-
-
-def write_trend_stats_csv(categories, csv_path):
-    """Write trend_stats_rows(categories) to one combined CSV file.
-
-    t.rast.stl2ca.py does not expose the stats-in-legend plot option this
-    addon used to have; this is its replacement, reporting the same
-    Theil-Sen/Mann-Kendall numbers (already computed by fit_trend()
-    regardless, whether or not a trend line is actually drawn) as a file
-    instead of on the plot.
-
-    :param list categories: see trend_stats_rows()
-    :param str csv_path: output CSV path
-    """
-    rows = trend_stats_rows(categories)
-    if not rows:
-        gs.warning(_("No trend statistics to write to '{}'.").format(csv_path))
-        return
-    pd.DataFrame(rows).to_csv(csv_path, index=False)
-    gs.message(_("Trend statistics written to {}").format(csv_path))
-
-
-def _trend_stats_row(label, segment, fit):
-    """Build one write_trend_stats_csv() row from one fit_trend() result.
-
-    OLS is deliberately left out here, even though fit_trend() always
-    computes it (a negligible extra cost alongside Theil-Sen/Mann-Kendall,
-    and e.g. t.rast.stl's own copy of this file still reports it): this
-    addon's driver never exposes a way to draw the OLS line (no '-o' flag),
-    so reporting its numbers in a CSV/table with nothing on the plot to
-    relate them to would be confusing rather than useful.
-
-    :param str label: category label
-    :param str segment: segment label, or '' for the whole-series fit
-    :param dict fit: a fit_trend() result dict
-    :return dict: one CSV row
-    """
-    return {
-        "category": label,
-        "segment": segment,
-        "n_obs": fit["x_stop"] - fit["x_start"] + 1,
-        "unit": fit.get("unit_label"),
-        "sen_slope": fit["sen_slope_report"],
-        "mk_tau": fit["mk_tau"],
-        "mk_pvalue": fit["mk_pvalue"],
-    }
-
-
 def fit_gam(xm, ym, direction, sen_slope):
-    """Fit a shape-constrained (monotone) GAM to (xm, ym) with pyGAM.
+    """Fit a GAM to (xm, ym) with pyGAM, optionally under a monotonicity
+    constraint.
 
-    A single smooth term on time is fit under a monotonic-increasing or
-    monotonic-decreasing constraint. When ``direction`` is 'auto', the sign of
-    the Theil-Sen slope decides the direction (a flat/zero Sen slope defaults to
-    increasing). The fit is on the deseasonalized observed series.
+    A single smooth term on time is fit. For 'increasing'/'decreasing' (and
+    'auto', which resolves to one of them from the sign of the Theil-Sen
+    slope, defaulting to increasing when flat/zero), the term is fit under
+    the matching monotonic constraint. For 'none' the term is unconstrained
+    and free to curve in either direction; since there is then no constraint
+    to keep it from overfitting, its smoothing parameter is chosen by
+    grid-search cross-validation instead of pyGAM's fixed default. The fit is
+    on the deseasonalized observed series.
 
     :param numpy.ndarray xm: observation indices (x), NaNs already removed
     :param numpy.ndarray ym: deseasonalized values (y), NaNs already removed
-    :param str direction: 'auto', 'increasing' or 'decreasing'
+    :param str direction: 'auto', 'increasing', 'decreasing' or 'none'
     :param float sen_slope: Theil-Sen slope, used to resolve 'auto'
     :return dict|None: GAM results, or None if the fit could not be made. Keys:
         'fitted' (curve at each xm), 'lower'/'upper' (95% band at each xm or
@@ -666,18 +591,25 @@ def fit_gam(xm, ym, direction, sen_slope):
     """
     LinearGAM, gam_s = lazy_import_pygam()
 
-    if direction == "auto":
+    if direction == "none":
+        resolved = "none"
+    elif direction == "auto":
         resolved = "decreasing" if sen_slope < 0 else "increasing"
     else:
         resolved = direction
-    constraint = "monotonic_inc" if resolved == "increasing" else "monotonic_dec"
 
     # pyGAM expects a 2-D design matrix.
     X = xm.reshape(-1, 1)
     try:
-        gam = LinearGAM(gam_s(0, constraints=constraint)).fit(X, ym)
+        if resolved == "none":
+            gam = LinearGAM(gam_s(0)).gridsearch(X, ym, progress=False)
+        else:
+            constraint = (
+                "monotonic_inc" if resolved == "increasing" else "monotonic_dec"
+            )
+            gam = LinearGAM(gam_s(0, constraints=constraint)).fit(X, ym)
     except Exception as e:  # pyGAM raises various errors on degenerate fits.
-        gs.warning(_("Monotone GAM fit failed ({}); skipping the GAM curve.").format(e))
+        gs.warning(_("GAM fit failed ({}); skipping the GAM curve.").format(e))
         return None
 
     fitted = np.asarray(gam.predict(X), dtype="float64")
@@ -717,7 +649,7 @@ def fit_trend(
     scale=1.0,
     unit_label=None,
 ):
-    """Linear and monotone-GAM regression of the deseasonalized series vs time.
+    """Linear and GAM regression of the deseasonalized series vs time.
 
     The regressions are fit on the **deseasonalized observed** series, i.e.
     ``trend + residual`` (equivalently ``observed - seasonal``).
@@ -766,8 +698,8 @@ def fit_trend(
         fewer than two points, the fit falls back to the untrimmed window.
     :param int right_trim: observations to drop from the end of the window
         before fitting, same fallback as left_trim.
-    :param bool fit_gam_curve: also fit a monotone GAM curve (requires pygam).
-    :param str gam_direction: 'auto', 'increasing' or 'decreasing'.
+    :param bool fit_gam_curve: also fit a GAM curve (requires pygam).
+    :param str gam_direction: 'auto', 'increasing', 'decreasing' or 'none'.
     :param float scale: multiplier converting a per-step slope into a per-unit
         slope (from slope_unit_scale()).
     :param str|None unit_label: name of the reporting unit (e.g. 'year').
@@ -819,7 +751,7 @@ def fit_trend(
     ts_slope, ts_intercept, ts_lo, ts_hi = theilslopes(ym, xm)
     mk_tau, mk_pvalue = kendalltau(xm, ym)
 
-    # Optional shape-constrained (monotone) GAM curve.
+    # Optional GAM curve, monotone-constrained unless gam_direction='none'.
     gam = None
     if fit_gam_curve:
         gam = fit_gam(xm, ym, gam_direction, float(ts_slope))
@@ -859,7 +791,7 @@ def write_point_vector(vector, east, north, trend_fit=None):
     the robust Theil-Sen slope and the Mann-Kendall tau and p-value, are stored
     as attributes of the single point feature. The slope values are in the
     chosen reporting unit (per day/week/month/year, or per step), named in the
-    ``slope_unit`` text column. When a monotone GAM was fit, its net change and
+    ``slope_unit`` text column. When a GAM was fit, its net change and
     explained deviance are stored too.
 
     :param str vector: name of the output point vector layer
@@ -1094,8 +1026,8 @@ def decompose_and_fit(
     :param str|None breakpoints_opt: the breakpoints= option value (may be
         empty/None). When given, OLS/Theil-Sen are fit separately on each
         segment between breakpoints instead of once over the whole series;
-        the monotone GAM curve, if requested, is still fit on the whole
-        series (it is not meant to be forced through artificial kinks).
+        the GAM curve, if requested, is still fit on the whole series (it is
+        not meant to be forced through artificial kinks).
 
     :return tuple: (result, trend_fit, trend_fit_segments, envelope_lower,
         envelope_upper) where result is the STL fit, trend_fit is the
@@ -1333,13 +1265,15 @@ def decompose_and_fit(
             )
         if show_gam and trend_fit.get("gam") is not None:
             g = trend_fit["gam"]
+            gam_desc = (
+                "GAM" if g["direction"] == "none" else "monotone GAM, " + g["direction"]
+            )
             gs.message(
                 _(
-                    "{pre}Trend (monotone GAM, {d}): net change={c}, "
-                    "explained deviance={r:.3f}"
+                    "{pre}Trend ({d}): net change={c}, explained deviance={r:.3f}"
                 ).format(
                     pre=prefix,
-                    d=g["direction"],
+                    d=gam_desc,
                     c=format_slope(g["change"]),
                     r=g["pseudo_r2"],
                 )

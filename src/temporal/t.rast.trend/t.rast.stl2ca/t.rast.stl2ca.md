@@ -421,7 +421,8 @@ TODO
 
 ## SEE ALSO
 
-*[t.rast.stl](t.rast.stl.md), [t.rast.line](t.rast.line.md),
+*[t.rast.trend](t.rast.trend.md), [t.rast.stl](t.rast.stl.md),
+[t.rast.line](t.rast.line.md),
 [t.rast.univar](t.rast.univar.md), [v.to.rast](v.to.rast.md),
 [r.reclass](r.reclass.md)*
 

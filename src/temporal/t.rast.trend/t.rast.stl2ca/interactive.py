@@ -31,7 +31,7 @@ from html import escape as html_escape
 import grass.script as gs
 
 from plot import category_colors
-from trend import trend_stats_rows
+from stats import trend_stats_rows
 
 if not callable(globals().get("_")):
     from gettext import gettext as _
@@ -210,8 +210,8 @@ def _sen_line_segments(comp, trend_fit, trend_fit_segments):
 
 
 # (row dict key, column header) pairs, in display order -- matches
-# trend.trend_stats_rows()'s own keys (shared with the stats_output= CSV,
-# see trend.write_trend_stats_csv()).
+# stats.trend_stats_rows()'s own keys (shared with the stats_output= CSV,
+# see stats.write_trend_stats_csv()).
 _STATS_TABLE_COLUMNS = [
     ("category", "Category"),
     ("segment", "Segment"),
@@ -237,7 +237,7 @@ def _format_stat_cell(value):
 
 def _stats_sidebar_html(categories):
     """Build a sidebar panel with the same trend statistics as
-    stats_output= (see trend.trend_stats_rows()), as plain HTML/CSS -- the
+    stats_output= (see stats.trend_stats_rows()), as plain HTML/CSS -- the
     open/close itself is the "checkbox hack" (a hidden checkbox, toggled by
     a <label>, with a CSS sibling selector reacting to it while it is
     checked), so no JavaScript is needed. A fixed tab in the top-left

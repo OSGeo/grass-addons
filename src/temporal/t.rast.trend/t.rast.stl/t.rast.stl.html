@@ -8,7 +8,8 @@ the observed series together with its <i>trend</i>, <i>seasonal</i> and
 <i>residual</i> (remainder) components. Optionally, one or more trend
 regressions can be fitted to the deseasonalized series and drawn on the trend
 panel, including an ordinary least-squares (OLS) line, a robust Theil-Sen line,
-and/or a shape-constrained (monotone) Generalized Additive Model (GAM) curve.
+and/or a Generalized Additive Model (GAM) curve, shape-constrained (monotone)
+by default.
 
 <p>
 The module strds with absolute (calendar-dated) or relative
@@ -337,7 +338,7 @@ when the data contain ties.
 <p>
 Which line(s) appear on the trend panel is controlled by flags: <b>-o</b>
 draws the OLS line, <b>-s</b> draws the Theil-Sen line, and <b>-g</b> draws a
-monotone GAM curve (see below). Note that the Theil-Sen slope with the
+GAM curve (see below). Note that the Theil-Sen slope with the
 non-parametric Kendall test is more resistant to outliers and does not assume
 normal residuals.
 
@@ -347,16 +348,19 @@ The <b>-t</b> flag adds the trend-line statistics (slope, R², Mann-Kendall
 printed to the terminal regardless of this flag.
 
 <p>
-The third fit, enabled with <b>-g</b>, is a shape-constrained (monotone)
-<b>Generalized Additive Model</b> fitted with <a
-href="https://pygam.readthedocs.io/">pyGAM</a>. It is a smooth, flexible curve,
-but constrained to never reverse direction. The <b>gam_direction</b> option sets
-the constraint direction: <tt>increasing</tt>, <tt>decreasing</tt>, or
-<tt>auto</tt> (the default, which picks the direction from the sign of the
-Theil-Sen slope). The GAM is summarised by its <b>net change</b> (fitted value
-at the last point minus the first, over the fitted span) and the <b>explained
-deviance</b>. The <b>-b</b> flag additionally shades the GAM's 95% confidence
-band.
+The third fit, enabled with <b>-g</b>, is a <b>Generalized Additive Model</b>
+fitted with <a href="https://pygam.readthedocs.io/">pyGAM</a>: a smooth,
+flexible curve. By default it is shape-constrained to a monotone curve that
+never reverses direction; the <b>gam_direction</b> option sets the constraint
+direction: <tt>increasing</tt>, <tt>decreasing</tt>, <tt>auto</tt> (the
+default, which picks the direction from the sign of the Theil-Sen slope), or
+<tt>none</tt>, which fits an unconstrained curve free to change direction,
+with its smoothing chosen by cross-validation. The GAM is summarised by its
+<b>net change</b> (fitted value at the last point minus the first, over the
+fitted span) and the <b>explained deviance</b>; for an unconstrained
+(<tt>none</tt>) fit, net change describes only the overall shift between the
+endpoints, not the shape of the curve in between. The <b>-b</b> flag
+additionally shades the GAM's 95% confidence band.
 
 <p>
 The slopes (OLS, Theil-Sen) and the GAM net change are expressed per
@@ -410,7 +414,7 @@ each starting a new segment, with the series' own start and end as the
 outer boundaries. Each segment is reported and drawn with its own
 slope/R²/<i>p</i>, labelled by its date (or step) range. <b>trend_trim</b>
 still only trims the series' true start and end; an interior breakpoint is
-not a LOESS edge, so no trim is applied there. The monotone GAM curve
+not a LOESS edge, so no trim is applied there. The GAM curve
 (<b>-g</b>), if requested, is always fit on the whole series regardless of
 <b>breakpoints</b>, since forcing it through artificial kinks would defeat
 its point. Combine <b>breakpoints</b> with matching <b>vlines</b> values to
@@ -473,7 +477,7 @@ envelope is included as <tt>seasonal_lower</tt>/<tt>seasonal_upper</tt> columns.
 <p>
 The <b>vector</b> option creates a point vector layer carrying the trend
 regression results (OLS slope, R², <i>p</i>-value, Theil-Sen slope, Mann-Kendall
-tau and <i>p</i>-value) as attributes. When a monotone GAM was fitted
+tau and <i>p</i>-value) as attributes. When a GAM was fitted
 (<b>-g</b>), its net change and explained deviance are stored as well. With
 <b>coordinates</b> the point is at the selected location; with <b>zone</b> or
 <b>raster</b> it is placed at the center of the zone's or raster's bounding
@@ -524,7 +528,8 @@ rest of the module works without it. The following packages are required:
   href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>),
   and the monotonic-trend <i>p</i>-value from Kendall's rank correlation (<a
   href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
-  <li><b>pygam</b> fits the optional shape-constrained (monotone) GAM curve (<a
+  <li><b>pygam</b> fits the optional GAM curve, by default shape-constrained
+  (monotone) (<a
   href="https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html">LinearGAM</a>).</li>
   <li><b>numpy</b> provides the array operations underlying the above, and
   <b>matplotlib</b> renders the multi-panel plot.</li>
@@ -681,6 +686,18 @@ series (<tt>trend + residual</tt>), so the confidence band reflects the genuine
 short-term scatter. Keep in mind that the reported <i>p</i>-values do not
 account for serial autocorrelation (see the trend regression section above).
 
+<p>
+When the trajectory is not expected to be one-directional, set
+<tt>gam_direction=none</tt> to drop the monotonicity constraint and let the
+curve follow reversals in the data:
+
+<div class="code">
+  <pre>
+t.rast.stl -gb strds=tempmean coordinates=636000,221000 gam_direction=none
+output=t_rast_stl_05b.png
+</pre>
+</div>
+
 <h3>Mark known events with vertical reference lines</h3>
 
 Use <b>vlines</b> (with <b>vlines_labels</b>) to mark one or more known dates,
@@ -779,7 +796,9 @@ one shared y-axis.
 
 <h2>SEE ALSO</h2>
 
-<i><a href="t.rast.line.md">t.rast.line</a>, <a
+<i><a href="t.rast.trend.md">t.rast.trend</a>, <a
+href="t.rast.stl2ca.md">t.rast.stl2ca</a>, <a
+href="t.rast.line.md">t.rast.line</a>, <a
 href="t.rast.what.md">t.rast.what</a>,<a
 href="t.rast.univar.md">t.rast.univar</a></i>
 

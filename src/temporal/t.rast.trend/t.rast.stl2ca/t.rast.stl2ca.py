@@ -457,20 +457,23 @@ from grass.script.utils import set_path
 if not callable(globals().get("_")):
     from gettext import gettext as _
 
-# extract.py/trend.py/plot.py: this module's own library files (see the
-# ETCFILES entry in the Makefile), originally split out of t.rast.stl --
-# this addon keeps its own copy since each GRASS addon is installed
-# independently. set_path() finds them whether this script is run from its
-# installed location or straight from the source tree. Each library file
-# leaves its own numpy/pandas/matplotlib/statsmodels/scipy names as None at
-# import time (set below, by lazy_import_py_modules(), once GRASS has
-# parsed the command line) so a plain module scan (--help, g.extension)
-# never needs the scientific stack installed.
+# extract.py/stats.py/plot.py/interactive.py: this module's own library
+# files (see the ETCFILES entry in the Makefile). trend.py is instead
+# shared with t.rast.stl via the trendlib library of the t.rast.trend
+# bundle both addons are installed under (see t.rast.trend/trendlib and
+# its own Makefile). set_path() finds both whether this script is run
+# from its installed location or straight from the source tree. Each
+# library module leaves its own numpy/pandas/matplotlib/statsmodels/scipy
+# names as None at import time (set below, by lazy_import_py_modules(),
+# once GRASS has parsed the command line) so a plain module scan
+# (--help, g.extension) never needs the scientific stack installed.
 set_path("t.rast.stl2ca")
+set_path(modulename="t.rast.trend", dirname="trendlib", path="..")
 import extract  # noqa: E402
-import trend  # noqa: E402
 import plot  # noqa: E402
 import interactive  # noqa: E402
+import stats  # noqa: E402
+from trendlib import trend  # noqa: E402
 from extract import (  # noqa: E402
     clean_dirs,
     clean_rasters,
@@ -485,7 +488,8 @@ from extract import (  # noqa: E402
     build_series,
     regularize,
 )
-from trend import decompose_and_fit, validate_odd_window, write_trend_stats_csv  # noqa: E402
+from trendlib.trend import decompose_and_fit, validate_odd_window  # noqa: E402
+from stats import write_trend_stats_csv  # noqa: E402
 from plot import apply_style, plot_result, parse_vlines  # noqa: E402
 from interactive import plot_interactive  # noqa: E402
 
@@ -513,11 +517,11 @@ def lazy_import_py_modules(backend="WXAgg"):
 
     Imports numpy/pandas/statsmodels/scipy/matplotlib once the command line
     has been parsed, and hands each to the library module(s) that use it --
-    extract.py/trend.py/plot.py each leave the name as None at import time
-    (see their module docstrings) until this runs. This is what keeps a
-    plain module scan (--help, g.extension) from ever needing the
-    scientific stack installed, now that it lives across four files instead
-    of one.
+    extract.py/trend.py/stats.py/plot.py each leave the name as None at
+    import time (see their module docstrings) until this runs. This is
+    what keeps a plain module scan (--help, g.extension) from ever needing
+    the scientific stack installed, now that it lives across several
+    files instead of one.
 
     :param str backend: matplotlib backend to activate before importing pyplot
     """
@@ -570,6 +574,7 @@ def lazy_import_py_modules(backend="WXAgg"):
     trend.linregress = linregress
     trend.theilslopes = theilslopes
     trend.kendalltau = kendalltau
+    stats.pd = pd
     plot.np = np
     plot.pd = pd
     plot.mpl = mpl
