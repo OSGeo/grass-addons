@@ -3,7 +3,6 @@ project(r.accumulate)
 
 include(build_addon)
 
-find_OpenMP()
 find_M()
 
 set(sources
@@ -46,7 +45,5 @@ build_addon(
     vector
   DEPENDS
     LIBM
-  OPTIONAL_DEPENDS
-    OpenMP::OpenMP_C
   SOURCES ${sources}
   DOCFILES ${doc_files})
