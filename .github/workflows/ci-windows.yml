@@ -180,6 +180,7 @@ jobs:
         shell: msys2 {0}
         env:
           GRASS_REF: ${{ matrix.grass-ref }}
+          MAX_FAILED: "40"
         run: |
           SRC_ADDONS="$(cygpath -u $GITHUB_WORKSPACE)/grass-addons/src"
           SRC_GRASS=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
@@ -198,6 +199,28 @@ jobs:
           export PYTHONHOME=/c/OSGeo4W/apps/Python312
 
           grass-addons/.github/workflows/windows_addons_compile.sh $SRC_ADDONS $SRC_GRASS $DST_DIR 1
+
+          # A few addons do not compile on Windows, which is accepted. When
+          # many fail or none is compiled, the build is taken as broken and
+          # fails here, so that its addons are not published and the server
+          # keeps the ones from the previous build.
+          built=$(grep -c 'SUCCESS$' "$DST_DIR/logs/index.log" || true)
+          failed=$(grep -c 'FAILED$' "$DST_DIR/logs/index.log" || true)
+          echo "$built addons compiled, $failed failed to compile"
+          sed -n 's/^\(.*[^ ]\) *FAILED$/  \1/p' "$DST_DIR/logs/index.log"
+          error=""
+          if [ "$built" -eq 0 ]; then
+            error="No addon was compiled"
+          elif [ "$failed" -gt "$MAX_FAILED" ]; then
+            error="$failed addons failed to compile, at most $MAX_FAILED are accepted"
+          fi
+          if [ -n "$error" ]; then
+            echo "::error::$error"
+            # Only the logs are left for the artifact of the failed build.
+            find "$DST_DIR" -mindepth 1 -maxdepth 1 ! -name logs -exec rm -rf {} +
+            exit 1
+          fi
+
           cd $DST_DIR
           for d in `ls -d */`; do
             mod=${d%%/}
