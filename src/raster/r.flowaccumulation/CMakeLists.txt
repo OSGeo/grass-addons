@@ -4,6 +4,7 @@ project(r.flowaccumulation)
 
 include(build_addon)
 
+find_OpenMP()
 find_M()
 
 set(sources
@@ -55,5 +56,6 @@ build_addon(
   ${PROJECT_NAME}
   GRASSLIBS gis raster
   DEPENDS LIBM
+  OPTIONAL_DEPENDS OpenMP::OpenMP_C
   SOURCES ${sources}
   DOCFILES ${doc_files})
