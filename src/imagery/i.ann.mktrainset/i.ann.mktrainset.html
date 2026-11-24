@@ -1,0 +1,65 @@
+<html>
+<head>
+  <title>i.ann.mktrainset - GRASS GIS manual</title>
+</head>
+<body>
+
+<h2>NAME</h2>
+i.ann.mktrainset - Export moving window samples from an imagery group and two rasters. This is designed to be used by i.ann.* training modules.
+
+<h2>KEYWORDS</h2>
+imagery, ann, export
+
+<h2>DESCRIPTION</h2>
+The <em>i.ann.mktrainset</em> module exports samples from a moving window across the current computational region. For each window position, it extracts all bands from a specified imagery group and two additional rasters. For each unique clump (region) in the first raster, it creates a set of masked GeoTIFF files:
+<ul>
+  <li>A multiband GeoTIFF containing all group bands, masked by the unique clump.</li>
+  <li>A single-band GeoTIFF for the each unique clump with a unique class.</li>
+</ul>
+The output is organized into subdirectories for each window position and clump.
+
+<h2>OPTIONS</h2>
+<ul>
+  <li><b>group</b> &mdash; Imagery group name (required)</li>
+  <li><b>raster1</b> &mdash; First raster input (clump, required)</li>
+  <li><b>raster2</b> &mdash; Second raster input (value, required)</li>
+  <li><b>out_dir</b> &mdash; Output directory (required)</li>
+  <li><b>win_width</b> &mdash; Window width in cells (required)</li>
+  <li><b>win_height</b> &mdash; Window height in cells (required)</li>
+</ul>
+
+<h2>NOTES</h2>
+<ul>
+  <li>All output files are written in GeoTIFF format using the current region's projection and resolution.</li>
+  <li>Each clump within a window is masked and exported separately.</li>
+  <li>This module requires <code>rasterio</code> and <code>numpy</code> Python packages.</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+<pre>
+# Create the raster datasets for polygons ids and associated classes
+g.region vector=LanduseMap_Steinbeissen_2009_07@PERMANENT format=plain
+
+# Raster1 unique polygon ID
+v.to.rast --overwrite input=LanduseMap_Steinbeissen_2009_07@PERMANENT output=polyg_id use=attr attribute_column=OBJECTID memory=8000
+
+# Raster2 LULC class value
+v.to.rast --overwrite input=LanduseMap_Steinbeissen_2009_07@PERMANENT output=polyg_class use=attr attribute_column=landuse__1 memory=8000
+
+# Generate the training set
+i.ann.mktrainset --verbose group=090727_Steinbeissen_rad_geo_atm@PERMANENT raster1=polyg_id raster2=polyg_class output_directory=/home/user/RSDATA/Steinbeissen_lulc window_width=128 window_height=128
+</pre>
+
+<h2>SEE ALSO</h2>
+<ul>
+  <li><a href="i.group.html">i.group</a></li>
+  <li><a href="r.out.bin.html">r.out.bin</a></li>
+  <li><a href="r.out.gdal.html">r.out.gdal</a></li>
+</ul>
+
+<h2>AUTHOR</h2>
+The GRASS Development team, 2025
+
+</body>
+</html>
+
