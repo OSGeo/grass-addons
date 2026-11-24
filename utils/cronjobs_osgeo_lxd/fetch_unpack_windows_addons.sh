@@ -95,8 +95,9 @@ deploy () {
   # The checksum is stored only after everything is in place, so that an
   # interrupted deployment is repeated. Owner, group, permissions and times
   # of existing directories are left alone, because only the owner of
-  # a directory can set them.
-  rsync -rlt --omit-dir-times --delete --exclude "/$DEPLOYED" \
+  # a directory can set them. Links pointing outside of the unpacked files
+  # are not copied.
+  rsync -rlt --omit-dir-times --safe-links --delete --exclude "/$DEPLOYED" \
     "$staging/" "$target/" || return 1
   cp "$checksum" "$target/$DEPLOYED" || return 1
 

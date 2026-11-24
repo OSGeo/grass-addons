@@ -76,9 +76,10 @@ programmer's manual.
     build in `build-info.txt`. The platforms and GRASS versions come from the
     names of the published files, so the job needs no change for a new GRASS
     version or platform. It only needs `python3`, `curl`, `sha256sum`,
-    `unzip`, `rsync`, and `flock`, and no GitHub token. To roll back a bad
-    build, delete its pre-release and this job deploys the previous one on its
-    next run.
+    `unzip`, `rsync`, and `flock`, and no GitHub token. Only pre-releases
+    and files created by the CI (`github-actions[bot]`) are used; a
+    pre-release created by hand is ignored. To roll back a bad build, delete
+    its pre-release and this job deploys the previous one on its next run.
 - GRASS GIS programmer's manual:
   - within `cron_grass_XXX_build_binaries.sh`
 - compilation addons:
