@@ -28,9 +28,11 @@
 #  1. fetch the published checksum; exit early if it matches the deployed one
 #  2. download the tarball and verify the checksum (abort on mismatch)
 #  3. unpack into a clean staging directory
-#  4. rsync over updated pages to target web directory, deleting leftover files
-#  5. generate links from src code directory content into web directory
-#  6. restore timestamps of links from their original time stamps in src directory
+#  4. generate links from src code directory content into the staging directory
+#  5. restore timestamps of links from their original time stamps in src directory
+#  6. rsync over updated pages to target web directory, deleting leftover files
+# The links are created before the rsync so that the links already in the web
+# directory are left in place and stay available during the deployment.
 ####
 
 # Overridable for testing (e.g. RELEASE_URL="file:///tmp/fake" TARGET=/tmp/www ...)
@@ -76,7 +78,7 @@ curl -fsSL -o "$TARBALL" "$RELEASE_URL/$TARBALL" && \
    sha256sum -c "$CHECKSUM" && \
    rm -rf public && mkdir public && \
    tar -xzf "$TARBALL" -C public && \
+   ln -s "$CODE_AND_DATA"/* public/ && \
+   (cd public && fix_link_timestamp .) && \
    rsync -a --delete "$WORK/public/" "$TARGET/" && \
-   ln -s "$CODE_AND_DATA"/* "$TARGET/" && \
-   (cd "$TARGET/" && fix_link_timestamp .) && \
    cp "$CHECKSUM" deployed.sha256
