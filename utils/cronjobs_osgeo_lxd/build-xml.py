@@ -80,10 +80,13 @@ class BuildXML:
 
     def _get_module_files(self, name):
         cur_dir = os.getcwd()
-        os.chdir(os.path.join(self.build_path, name))
-        files = self._scandirs("*")
-        os.chdir(cur_dir)  # prevent gtask.parse_interface() return None
-        return files
+        module_dir = os.path.join(self.build_path, name)
+        try:
+            os.chdir(module_dir)
+            return self._scandirs("*")
+        finally:
+            # prevent follow-up failures when cwd is left in a module dir
+            os.chdir(cur_dir)
 
     def _get_module_metadata(self, name):
         path = os.environ["PATH"]
