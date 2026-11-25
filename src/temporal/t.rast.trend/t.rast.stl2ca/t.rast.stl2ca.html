@@ -15,8 +15,7 @@ or a vector map's features grouped by an attribute column
 (<b>map</b>/<b>layer</b>/<b>column</b>). This can, for example, be a land-cover
 raster, or a vector of administrative units grouped by region name.
 t.rast.stl2ca complements <i><a href="t.rast.stl.md">t.rast.stl</a></i>, which
-can instead compare two <i>datasets</i> sampled at one, manually chosen area;
-use t.rast.stl for that case.
+can instead compare two <i>datasets</i> sampled at one, manually chosen area.
 
 <p>
 The module supports strds with absolute (calendar-dated) or relative
@@ -24,11 +23,17 @@ The module supports strds with absolute (calendar-dated) or relative
 evenly spaced time axis, and then run through
 <a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>.
 
+<h3>Acknowledgement</h3>
+
+This tool was developed for the
+<a href="https://savethetiger.nl/">Save the tiger! Save the Grasslands! Save the Water!</a>
+project, funded by the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
+
 <h3>About STL</h3>
 
-Environmental time series derived from remote sensing, like a vegetation index,
-land surface temperature, snow cover, or soil moisture, are normally composed
-of:
+Environmental time series of e.g., a vegetation index, land surface temperature,
+snow cover, or soil moisture, are normally composed of:
 
 <ul>
   <li>A repeating <b>seasonal</b> pattern, e.g. vegetation greening up every
@@ -54,22 +59,19 @@ outliers such as undetected clouds.
 
 <p>
 The module can be run with default settings to explore patterns. The minimum
-input is the strds and either <b>raster</b> or <b>map</b>. If the maps in the
-strds are not regularly spaced, you will need to provide the required frequency
-as well. For more information about this parameter and other fine-tune options,
-see the next section.
+input is the strds and point coordinates. If the maps in the strds are not
+regularly spaced, you will need to provide the required frequency as well. For
+more information about this parameter and other fine-tune options, see the next
+section.
 
 <h3>The categories</h3>
 
 Each category is sampled as the mean, median or other statistic of the pixels
-that belong to it, in exactly one of two ways:
+that are part of that category. The category can be defined by:
 
 <ul>
   <li><b>raster</b>: a CELL (integer) raster whose distinct cell values are the
-  category codes. There is no per-category breakdown beyond the raster's own
-  values. You need to reclassify it first with
-  <i><a href="r.reclass.md">r.reclass</a></i> if you need a coarser
-  grouping.</li>
+  categories.</li>
   <li><b>map</b> (with <b>layer</b> and <b>column</b>): a vector map, rasterized
   and grouped by an attribute column. Every feature becomes its own category by
   default (<b>column=cat</b>, i.e. not set); giving a different <b>column</b>
@@ -126,13 +128,11 @@ gap.
 
 Every category gets its own color, from <b>colormap</b> (a
 <a href="https://matplotlib.org/stable/users/explain/colors/colormaps.html">Matplotlib colormap</a>
-name, default <tt>tab10</tt>), with one legend for the whole figure, placed
-below the bottom panel so it never sits on top of a line. Once there are more
-categories than the chosen colormap has distinct colors, a continuous colormap
-(<tt>viridis</tt>) is used instead, sampled evenly across its range (a warning
-names this when it happens). The dispersion band (<b>-d</b>), seasonal envelope
-(<b>seasonal_envelope</b>) and Theil-Sen trend line (<b>-s</b>) are each drawn
-in the category's own color.
+name, default <tt>tab10</tt>). Once there are more categories than the chosen
+colormap has distinct colors, a continuous colormap (<tt>viridis</tt>) is used
+instead, sampled evenly across its range. The dispersion band (<b>-d</b>),
+seasonal envelope (<b>seasonal_envelope</b>) and Theil-Sen trend line
+(<b>-s</b>) are each drawn in the category's own color.
 
 <h3>Interactive plot</h3>
 
@@ -141,7 +141,7 @@ The <b>-i</b> flag writes an interactive HTML plot (using
 Matplotlib) instead of a static image, with the same panels, colours and legend
 as the static figure. <b>output</b> must then end in <tt>.html</tt>; if
 <b>output</b> is left out, the plot is opened in a browser tab instead of being
-shown in a window. What it adds over the static figure:
+shown in a window. The interactive plot has the following features:
 
 <ul>
   <li>Click a category's legend entry to highlight it. This will cause the other
@@ -172,9 +172,9 @@ the x-axis is labelled "Time step".
 
 <h3>Regularization</h3>
 
-STL requires an evenly spaced, gap-free series. Each category's series is
-therefore resampled onto a regular axis and any gaps are then filled in. Three
-options control this:
+STL requires an evenly spaced, gap-free series. The series is therefore
+resampled onto a regular axis, and any gaps are then filled in. Three options
+control this:
 
 <p>
 <b>frequency</b> sets the spacing of the regular axis for absolute-time
@@ -182,8 +182,8 @@ datasets. It is a
 <a href="https://pandas.pydata.org/docs/user_guide/timeseries.html#time-span-representation">pandas offset alias</a>.
 Common choices are <tt>D</tt> (daily), <tt>W</tt> (weekly), <tt>MS</tt> (month
 start), or e.g., <tt>16D</tt> for a 16-day composite series. For absolute-time
-datasets that are already regularly spaced, <b>frequency</b> may be omitted and
-the spacing is inferred. For irregular data you should set it explicitly to fit
+datasets that are already regularly spaced, <b>frequency</b> may be omitted, and
+the spacing is inferred. For irregular data, you should set it explicitly to fit
 the desired / intended spacing.
 
 <p>
@@ -270,12 +270,11 @@ distorting the fit.
 <h3>Seasonal amplitude envelope</h3>
 
 The <b>seasonal_envelope</b> option draws a rolling envelope of the seasonal
-component on the Seasonal panel, for every category: a moving window one
-seasonal <b>period</b> wide, centered on each point, tracks the local extremes
-of the seasonal cycle. It can be used to show a decrease or increase in the
-amplitude over time (for example, a vegetation index whose greening/senescence
-amplitude strengthens or dampens across years), and to compare that change
-between categories.
+component on the Seasonal panel: a moving window one seasonal <b>period</b>
+wide, centered on each point, tracks the local extremes of the seasonal cycle.
+It can be used to show a decrease or increase in the amplitude over time (for
+example, a vegetation index whose greening/senescence amplitude strengthens or
+dampens across years).
 
 <p>
 The value is the fraction trimmed off each end of the window before taking the
@@ -301,7 +300,7 @@ the data contain ties).
 <p>
 The <b>-s</b> flag draws the Theil-Sen line on the trend panel;
 <b>stats_output</b> writes its numbers (slope, Kendall's tau, p-value) to a CSV
-file, one row per category, regardless of <b>-s</b> -- see "Output" below.
+file, one row per category, regardless of <b>-s</b>.
 
 <p>
 The slopes are expressed per observation of the regularized series, i.e., per
@@ -345,19 +344,16 @@ edge of the plot, increasing <b>trend_trim</b> is the appropriate fix.
 
 <h3>Trend breakpoints</h3>
 
-A single Theil-Sen slope over the whole series averages away a real turning
-point, for example a rise, a decline, and a renewed rise. The <b>breakpoints</b>
-option splits the fit of each category into separate segments instead: one or
-more dates (absolute-time) or time steps (relative-time), each starting a new
+A single OLS/Theil-Sen slope over the whole series averages away a real turning
+point, such as a rise, a decline, or a renewed rise. The <b>breakpoints</b>
+option splits the OLS/Theil-Sen fit into separate segments instead: one or more
+dates (absolute-time) or time steps (relative-time), each starting a new
 segment, with the series' own start and end as the outer boundaries. Each
-segment gets its own row in <b>stats_output</b>, labelled by its date (or step)
-range, and (with <b>-s</b>) its own Theil-Sen line on the plot.
-<b>trend_trim</b> still only trims the series' true start and end; an interior
-breakpoint is not a LOESS edge, so no trim is applied there. Combine
-<b>breakpoints</b> with matching <b>vlines</b> values to also mark them on the
-plot. A segment left with too few observations after trimming (fewer than 4) is
-rejected with an error naming it, rather than silently reporting a
-near-meaningless fit.
+segment is reported and drawn with its own slope/R²/<i>p</i>, labelled by its
+date (or step) range. Note that this option is ignored used for The GAM curve
+(<b>-g</b>). Combine <b>breakpoints</b> with matching <b>vlines</b> values to
+also mark them on the plot. A segment left with too few observations after
+trimming (fewer than 4) is rejected with an error naming it.
 
 <h3>Vertical reference lines</h3>
 
@@ -389,7 +385,7 @@ e.g. to set a thinner <tt>axes.linewidth</tt> than any built-in style does.
 <p>
 The <b>plots</b> option selects which of the four panels (observed, trend,
 seasonal, residual) are drawn. By default all four are shown; list a subset to
-leave the others out, for example <i>plots=observed,trend</i> to draw only the
+leave the others out, for example, <i>plots=observed,trend</i> to draw only the
 observed series and its trend. At least one panel is required. The Theil-Sen
 trend line (<b>-s</b>) is only drawn when the trend panel is included. When
 <b>plot_dimensions</b> is not set, the default figure height scales with the
@@ -400,24 +396,24 @@ number of selected panels (about 2 inches each, so the full four-panel figure is
 The <b>backend</b> option selects the matplotlib rendering backend. You rarely
 need it: <tt>Agg</tt> is chosen automatically when writing to a file, and
 <tt>WXAgg</tt> (an interactive window) when no output file is given. Override it
-only if your system needs a different interactive backend (e.g. <tt>TkAgg</tt>,
+only if your system needs a different interactive backend (e.g., <tt>TkAgg</tt>,
 <tt>Qt5Agg</tt>).
 
 <p>
 <b>stats_output</b>, when given, writes the Theil-Sen/Kendall trend statistics
 (slope, tau, p-value, the reporting unit, number of observations fitted) to a
-CSV file, one row per category -- and one row per <b>breakpoints</b> segment,
-when given, in addition to the whole-series row. This is independent of
-<b>-s</b>: the statistics are computed either way, this option just decides
-whether they are written out. With <b>-i</b>, the same table is also always
-shown in the HTML output, in a sidebar opened from the "Trend statistics" tab --
-see "Interactive plot" above -- whether or not <b>stats_output</b> is given.
+CSV file, one row per category, and one row per <b>breakpoints</b> segment, when
+given, in addition to the whole-series row. This is independent of <b>-s</b>:
+the statistics are computed either way, this option just decides whether they
+are written out. With <b>-i</b>, the same table is also always shown in the HTML
+output, in a sidebar opened from the "Trend statistics" tab (see "Interactive
+plot" above), whether or not <b>stats_output</b> is given.
 
 <h3>Subsetting and performance</h3>
 
 The <b>where</b> option accepts a temporal WHERE clause (as used by other
 <tt>t.*</tt> modules) to restrict the analysis to a subset of timestamps, for
-example a particular range of years. Note that in the interactive plot, you can
+example, a particular range of years. Note that in the interactive plot, you can
 plot the whole range and select the range you are interested in in the plot (see
 above).
 
@@ -438,9 +434,27 @@ not reduce the per-map cost of a strds with many registered maps.
 
 <h2>NOTES</h2>
 
-This addon requires the Python packages <i>numpy</i>, <i>pandas</i>,
-<i>scipy</i>, <i>matplotlib</i> and <i>statsmodels</i>. They are all
-pip-installable, e.g.
+This addon requires the following Python packages:
+
+<ul>
+  <li><b>pandas</b> builds the time-indexed series, resamples it onto the
+  regular axis (<tt>Series.resample</tt>) and fills gaps
+  (<tt>Series.interpolate</tt>).</li>
+  <li><b>statsmodels</b> performs the STL decomposition
+  (<a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>),
+  splitting the series into trend, seasonal and residual components.</li>
+  <li><b>scipy</b> fits the trend regressions: the OLS line
+  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.linregress.html">scipy.stats.linregress</a>),
+  the robust Theil-Sen line
+  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>),
+  and the monotonic-trend <i>p</i>-value from Kendall's rank correlation
+  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
+  <li><b>numpy</b> provides the array operations underlying the above, and
+  <b>matplotlib</b> renders the multi-panel plot.</li>
+</ul>
+
+<p>
+They are all pip-installable, e.g.
 
 <div class="code">
   <pre>
@@ -449,35 +463,8 @@ pip install numpy pandas scipy matplotlib statsmodels
 </div>
 
 <p>
-If a dependency is missing the module exits with a message indicating which
-package to install. The <b>-i</b> (interactive HTML plot) flag additionally
-needs <i>plotly</i> (<tt>pip install plotly</tt>), checked only when <b>-i</b>
-is actually used -- an ordinary run never needs it installed.
-
-<ul>
-  <li><b>pandas</b> builds the time-indexed series, resamples it onto the
-  regular axis (<tt>Series.resample</tt>) and fills gaps
-  (<tt>Series.interpolate</tt>).</li>
-  <li><b>statsmodels</b> performs the STL decomposition
-  (<a href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>),
-  splitting each series into trend, seasonal and residual components.</li>
-  <li><b>scipy</b> fits the robust Theil-Sen trend line
-  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>)
-  and the monotonic-trend <i>p</i>-value from Kendall's rank correlation
-  (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
-  <li><b>numpy</b> provides the array operations underlying the above, and
-  <b>matplotlib</b> renders the multi-panel plot.</li>
-</ul>
-
-<p>
-Not every option of <i><a href="t.rast.stl.md">t.rast.stl</a></i> is available
-here: there is no second strds (<b>strds2</b>), no OLS trend line on the plot
-(<b>-o</b>), no monotone GAM trend curve
-(<b>-g</b>/<b>-b</b>/<b>gam_direction</b>), no point-vector output
-(<b>vector</b>), and no transient temporal-outlier filter
-(<b>temporal_outliers</b>) -- all of these would need to be meaningful across an
-arbitrary number of categories rather than one or two fixed areas; some may
-return in a future version.
+If a dependency is missing, the module exits with a message indicating which
+package to install.
 
 <h2>EXAMPLES</h2>
 

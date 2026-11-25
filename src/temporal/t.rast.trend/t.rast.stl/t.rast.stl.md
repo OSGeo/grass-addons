@@ -10,18 +10,17 @@ deseasonalized series and drawn on the trend panel, including an ordinary
 least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized
 Additive Model (GAM) curve, shape-constrained (monotone) by default.
 
-The module strds with absolute (calendar-dated) or relative (integer-stepped)
-time. For a point (**coordinates**) it samples the pixel value at every
-registered timestep. For an area (**zone** or **raster**) it takes the average
-or median value of all the pixels in the area. The resulting series is regularized onto an
-evenly, user-defined, spaced time axis, and then run through
+The module accepts strds with absolute (calendar-dated) or relative
+(integer-stepped) time. For a point (**coordinates**) it samples the pixel value
+at every registered timestep. For an area (**zone** or **raster**) it takes for
+each registered step the average or median value of all the pixels in the area.
+The resulting series is regularized onto an evenly, user-defined, spaced time
+axis, and then run through
 [statsmodels.tsa.seasonal.STL](https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html).
-
 ### About STL
 
-Environmental time series derived from remote sensing, like a vegetation index,
-land surface temperature, snow cover, or soil moisture, are normally composed
-of:
+Environmental time series of e.g., a vegetation index, land surface temperature,
+snow cover, or soil moisture, are normally composed of:
 
 - A repeating **seasonal** pattern, e.g. vegetation greening up every spring and
   senescing every autumn;
@@ -59,72 +58,67 @@ the map display (when launched from the terminal, clicking a location will not
 work).
 
 **zone** is a vector map (points, lines or polygons) defining the sampling area.
-All of its features are rasterized and pooled into a single sample. So there is
-no per-feature breakdown. Use *[v.extract](v.extract.md)* beforehand to
-pre-select a subset of features if the map contains more than you want pooled
-together.
+All of its features are rasterized and pooled into a single sample.
 
 **raster** is a raster map defining the sampling area: every *non-null* cell is
 pooled into a single sample, the raster counterpart of **zone**. The map can be
 of any type (CELL, FCELL or DCELL).
 
-Either way, the module samples the *current computational region*'s
-resolution. Set the region with *[g.region](g.region.md)* before running if
-needed. The point, or at least part of the zone or raster, must fall inside
-the current region.
+Either way, the module respects the *current computational region*'s resolution.
+Set the region with *[g.region](g.region.md)* before running if needed. The
+point, or at least part of the zone or raster, must fall inside the current
+region.
 
 With **zone** or **raster**, the per-timestep pixel values within the area are
 summarized by **statistic**: `mean` (the default), `median`, `min`, `max` or
 `percentile`. `percentile` requires **percentile_value** (0-100). Note that
 `median` and `percentile` require t.rast.univar's extended-statistics mode,
-which can require a lot of memory if used with large rasters; `mean`, `min`
-and `max` do not. The **-d** flag additionally shades a band around the
-Observed series showing the spread of pixel values at each timestep: ±1
-standard deviation for `mean`, or the interquartile range (25th-75th
-percentile) for `median`. It is only valid with `statistic=mean` or
-`statistic=median`. Gaps in the band (missing timesteps, or dates excluded by
-**temporal_outliers**) are always filled by linear interpolation, regardless
-of the **interpolation** option, so a curvature-fitting method chosen for the
-series itself cannot overshoot and bulge the band past its true local range.
+which can require a lot of memory if used with large rasters. The **-d** flag
+additionally shades a band around the Observed series showing the spread of
+pixel values at each timestep: ±1 standard deviation for `mean`, or the
+interquartile range (25th-75th percentile) for `median`. It is only valid with
+`statistic=mean` or `statistic=median`. Gaps in the band (missing timesteps, or
+dates excluded by **temporal_outliers**) are always filled by linear
+interpolation, regardless of the **interpolation** option, so a
+curvature-fitting method chosen for the series itself cannot overshoot and bulge
+the band past its true local range.
 
 A standard deviation or interquartile range estimated from very few pixels is
 unreliable and can spike far past the genuine spread, typically on a
-near-total-cloud timestep where only a handful of pixels survive -- while the
-mean/median itself still looks normal, since it is a much less noise-sensitive
-statistic, so **temporal_outliers** will not catch it either. **min_pixels**
-guards against this: at timesteps with fewer non-null pixels than this, the
-band is left out there too and filled the same way as any other gap.
+near-total-cloud timestep where only a handful of pixels survive. **min_pixels**
+guards against this: at timesteps with fewer non-null pixels than this, the band
+is left out there too and filled the same way as any other gap.
 
 ### Comparing two datasets
 
 A second space-time raster dataset can be supplied with **strds2**. When given,
 the full analysis (regularization, STL decomposition and trend regression) is
 run on both datasets and the two are drawn together on the same four panels
-(Observed, Trend, Seasonal, Residual). By default, the first dataset is plotted
-against the left y-axis and the second against its own twin right y-axis on each
-panel, so two quantities with very different units or ranges (for example
-temperature and precipitation) can be compared on a shared time axis. The two
-series are distinguished by colour, with the y-axis tick numbers coloured to
-match and a single legend in the Observed panel naming each dataset.
+(Observed, Trend, Seasonal, Residual).
+
+By default, the first dataset is plotted against the left y-axis and the second
+against its own twin right y-axis on each panel, so two quantities with very
+different units or ranges (for example temperature and precipitation) can be
+compared on a shared time axis. The two series are distinguished by color, with
+the y-axis tick numbers colored to match and a single legend in the Observed
+panel naming each dataset. But, when the two datasets are in comparable units,
+the **-y** flag forces them onto a single common y-axis range per panel (instead
+of separate left/right axes), so their magnitudes can be read directly against
+one another. This flag has no effect unless **strds2** is given.
 
 The trend regression lines requested with **-o**, **-s** and **-g** are drawn on
-the Trend panel for both datasets. Each dataset's regression lines use a colour
+the Trend panel for both datasets. Each dataset's regression lines use a color
 family matching its series, while different line styles are used for the
 different regression types (OLS dashed, Theil-Sen dash-dot, GAM dotted). The
 **-t** flag adds the slope/R²/*p* statistics to it. The full statistics for each
 dataset are always printed to the terminal regardless.
 
-When the two datasets are in comparable units, the **-y** flag forces them onto
-a single common y-axis range per panel (instead of separate left/right axes), so
-their magnitudes can be read directly against one another. This flag has no
-effect unless **strds2** is given.
-
-The series line colours can be set with **color** (for **strds**) and **color2**
-(for **strds2**). Each accepts a standard GRASS colour name (such as `blue` or
+The series line colors can be set with **color** (for **strds**) and **color2**
+(for **strds2**). Each accepts a standard GRASS color name (such as `blue` or
 `aqua`), an `R:G:B` triplet with each component in 0-255 (such as `0:0:255`),
 hex code (`#1f77b4`) or a `tab:` name. The trend regression lines for a dataset
-are drawn in a darker family derived from its series colour. In the
-single-dataset case **color** sets the series colour while the OLS/Theil-Sen/GAM
+are drawn in a darker family derived from its series color. In the
+single-dataset case **color** sets the series color while the OLS/Theil-Sen/GAM
 lines keep their default (red/green/purple).
 
 Both datasets must share the same temporal type (both absolute or both
@@ -148,8 +142,8 @@ It is a [pandas offset
 alias](https://pandas.pydata.org/docs/user_guide/timeseries.html#time-span-representation).
 Common choices are `D` (daily), `W` (weekly), `MS` (month start), or e.g., `16D`
 for a 16-day composite series. For absolute-time datasets that are already
-regularly spaced, **frequency** may be omitted and the spacing is inferred. For
-irregular data you should set it explicitly to fit the desired / intended
+regularly spaced, **frequency** may be omitted, and the spacing is inferred. For
+irregular data, you should set it explicitly to fit the desired / intended
 spacing.
 
 **step** sets the spacing for relative-time datasets, as an integer in the
@@ -174,36 +168,36 @@ resampled. For example, setting data that is actually 16-day composites to `D`
 
 **temporal_outliers** (and **temporal_outliers2** for `strds2`) detects and
 excludes short-lived spikes and dips before the analysis. It takes
-`threshold,window`, where **threshold** is the minimum deviation from the
-local median (in the data's own units, e.g., 0.3 NDVI units) and **window**
-defines the period used to detect the spike (calendar days for absolute-time
-data, time steps for relative-time data). An observation is excluded only if
-it deviates from the median of neighbouring observations by at least
-**threshold** and returns close to that level within **window**. Sustained
-changes are retained, as they may represent genuine environmental changes.
-Excluded observations are treated as missing and always filled by linear
-interpolation (regardless of **interpolation**, which still governs genuine
-gaps) before STL decomposition and trend regression: an excursion can span
-many steps, and a curvature-fitting method bridging a gap that wide can
-overshoot past either neighbour, undoing the whole point of excluding the
-outlier by replacing it with a different, possibly larger artefact. Excluded
-observations are shown as lighter-coloured markers in the Observed panel,
-unless **-e** is given, in which case the markers are left out and the
-Observed panel's y-axis autoscales to the gap-filled series alone, rather than
-being stretched to also fit the excluded values. The pixel-value spread band
-(**-d**) is blanked and linearly interpolated at the same timesteps, so it
-does not keep showing the raw spread at an excluded date either.
+`threshold,window`. The **threshold** sets the minimum deviation from the local
+median (in the data's own units, e.g., 0.3 NDVI units), and **window** defines
+the period used to detect the spike (calendar days for absolute-time data, time
+steps for relative-time data). An observation is excluded only if it deviates
+from the median of neighbouring observations by at least **threshold** and
+returns close to that level within **window**. Sustained changes are retained,
+as they may represent genuine environmental changes. Excluded observations are
+treated as missing and always filled by linear interpolation (regardless of
+**interpolation**, which still governs genuine gaps) before STL decomposition
+and trend regression. This is done because an excursion can span many steps, and
+a curvature-fitting method bridging a gap that wide can overshoot past either
+neighbor, undoing the whole point of excluding the outlier by replacing it with
+a different, possibly larger artefact. Excluded observations are shown as
+lighter-colored markers in the Observed panel, unless **-e** is given, in which
+case the markers are left out and the Observed panel's y-axis autoscales to the
+gap-filled series alone, rather than being stretched to also fit the excluded
+values. The excluded outliers are also excluded whe computing the pixel-value
+spread band (**-d**), so it does not keep showing the raw spread at an excluded
+date either.
 
-This option helps identify potential data artefacts, such as cloud
-contamination or sensor errors, that STL's robust fitting (**-r**) and the
-Theil-Sen trend estimator (**-s**) may not adequately handle. **Use it with
-caution:** rapid changes can also be genuine, and removing observations can
-affect estimated trends and their statistical significance, particularly in
-short time series. Choose **threshold** and **window** based on the expected
-behaviour of the data, not to obtain a particular result. Always inspect the
-excluded observations, justify the chosen settings, and preferably compare
-results with and without filtering to avoid inadvertently introducing bias or
-*p-hacking*.
+The option to exclude outliers can help to identify potential data artefacts,
+such as cloud contamination or sensor errors, that STL's robust fitting (**-r**)
+and the Theil-Sen trend estimator (**-s**) may not adequately handle. HOwever,
+use it with caution. Rapid changes can also be genuine, and removing
+observations can affect estimated trends and their statistical significance,
+particularly in short time series. Choose the **threshold** and **window** based
+on the expected behavior of the data, not to obtain a particular result. Always
+inspect the excluded observations, justify the chosen settings, and preferably
+compare results with and without filtering to avoid inadvertently introducing
+bias or *p-hacking*.
 
 ### Decomposition (STL)
 
@@ -212,7 +206,7 @@ parameter is **period**, which is tied to the regularized frequency (or, for
 relative-time data, the step / granularity). It is the number of observations in
 one full seasonal cycle. For example 12 for monthly data, 23 for a 16-day
 composite series (≈ 365 / 16), or 365 for daily data with an annual cycle. If
-**period** is not given it is estimated from the resampled frequency (or, for
+**period** is not given, it is estimated from the resampled frequency (or, for
 relative-time data, the dataset granularity). Set it explicitly whenever you are
 unsure the inference will be right, or when your cycle is not annual.
 
@@ -232,7 +226,7 @@ bend more. If left empty, statsmodels derives a default from the period and
 seasonal window. The equivalent parameter in R's stl() function is `t.window`.
 
 **low_pass**: length of the low-pass smoother (odd integer ≥ 3). This is an
-internal step separating season from trend; the default (the smallest odd number
+internal step separating season from trend. The default (the smallest odd number
 larger than **period**) is almost always fine. The equivalent parameter in R's
 stl() function is `l.window`.
 
@@ -244,8 +238,8 @@ and low-pass (`l.degree`) smoothers, but 0 for the seasonal smoother
 
 **seasonal_jump**, **trend_jump**, **low_pass_jump**: control the trade-off
 between speed and accuracy. The LOESS is evaluated every jump observations and
-interpolated in between; 1 (the default) evaluates at every point and is the
-most exact.
+interpolated in between. With 1 (the default), the LOESS is evaluated at every
+point, which is the most exact.
 
 **-r** (robust flag): turns on robust fitting, which iteratively down-weights
 outliers. This is worth enabling when residual cloud or sensor spikes are
@@ -272,10 +266,10 @@ columns.
 
 ### Trend lines
 
-Beyond the visual decomposition, the tool quantifies the long-term change by
+Beyond the visual decomposition, the tool can quantify the long-term change by
 fitting regressions to the **deseasonalized observed** series and drawing them
-on the trend panel. The deseasonalized series is `trend + residual`
-(equivalently `observed - seasonal`)
+on the trend panel. The deseasonalized series is `trend + residual`, which is
+equivalent to `observed - seasonal`.
 
 Three fits are available. The first is an ordinary least-squares (OLS) line,
 reported with its **slope** and **R²**. The second is a robust Theil-Sen line
@@ -286,12 +280,12 @@ rank-correlation test (SciPy's
 [kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
 Note that this differs from a full Mann-Kendall test, which applies tie and
 variance corrections. The reported *p*-values may therefore differ slightly when
-the data contain ties.
+the data contain ties. Note that the Theil-Sen slope with the non-parametric Kendall test
+is more resistant to outliers and does not assume normal residuals.
 
 Which line(s) appear on the trend panel is controlled by flags: **-o** draws the
 OLS line, **-s** draws the Theil-Sen line, and **-g** draws a GAM curve
-(see below). Note that the Theil-Sen slope with the non-parametric Kendall test
-is more resistant to outliers and does not assume normal residuals.
+(see below).
 
 The **-t** flag adds the trend-line statistics (slope, R², Mann-Kendall
 *p*-value, and GAM net change) to the legend. The statistics are always printed
@@ -344,48 +338,42 @@ at the edge of the plot, increasing **trend_trim** is the appropriate fix.
 
 ### Trend breakpoints
 
-A single OLS/Theil-Sen slope over the whole series averages away a real
-turning point, for example a rise, a decline, and a renewed rise. The
-**breakpoints** option splits the OLS/Theil-Sen fit into separate segments
-instead: one or more dates (absolute-time) or time steps (relative-time),
-each starting a new segment, with the series' own start and end as the
-outer boundaries. Each segment is reported and drawn with its own
-slope/R²/*p*, labelled by its date (or step) range. **trend_trim** still only
-trims the series' true start and end; an interior breakpoint is not a LOESS
-edge, so no trim is applied there. The GAM curve (**-g**), if
-requested, is always fit on the whole series regardless of **breakpoints**,
-since forcing it through artificial kinks would defeat its point. Combine
-**breakpoints** with matching **vlines** values to also mark them on the
-plot. A segment left with too few observations after trimming (fewer than
-4) is rejected with an error naming it, rather than silently reporting a
-near-meaningless fit.
+A single OLS/Theil-Sen slope over the whole series averages away a real turning
+point, such as a rise, a decline, or a renewed rise. The **breakpoints** option
+splits the OLS/Theil-Sen fit into separate segments instead: one or more dates
+(absolute-time) or time steps (relative-time), each starting a new segment, with
+the series' own start and end as the outer boundaries. Each segment is reported
+and drawn with its own slope/R²/*p*, labelled by its date (or step) range. Note
+that this option is ignored used for The GAM curve (**-g**). Combine
+**breakpoints** with matching **vlines** values to also mark them on the plot. A
+segment left with too few observations after trimming (fewer than 4) is rejected
+with an error naming it.
 
 ### Vertical reference lines
 
 The **vlines** option draws one or more dashed vertical reference lines across
-every panel, for example to mark a known event (a fire, flood, land-use
-change, or similar) against the decomposition. Give one or more dates
-(*vlines=2019-08-15*) for absolute-time **strds**, or one or more integer time
-steps for relative-time **strds**; separate multiple values with commas
+every panel. This can be used to mark, for example, a known event (a fire,
+flood, land-use change, or similar) against the decomposition. Give one or more
+dates (*vlines=2019-08-15*) for absolute-time **strds**, or one or more integer
+time steps for relative-time **strds**; separate multiple values with commas
 (*vlines=2015-01-01,2019-08-15*). Optional text labels for each line can be
 given with **vlines_labels**, in the same order and count as **vlines**
-(*vlines_labels=Fire,Flood*); they are shown rotated above the top panel.
+(*vlines_labels=Fire,Flood*); they are shown above the top panel.
 
 ### Output
 
 By default the multi-panel plot is shown in an interactive window. If **output**
-is given, the plot is instead saved to that file and the image format is taken
-from the file extension (`.png`, `.pdf`, `.svg`, ...). Plot appearance is
-controlled by **dpi** (resolution, default 300) and **plot_dimensions**
-(width,height in inches). The **style** option applies a Matplotlib
+is given, the plot is instead saved to that file. The image format is taken from
+the file extension (`.png`, `.pdf`, `.svg`, ...). Plot appearance is controlled
+by **dpi** (resolution, default 300) and **plot_dimensions** (width,height in
+inches). The **style** option applies a Matplotlib
 [style sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
 to the plot, e.g. *style=ggplot*. It also accepts the path to a custom
-[.mplstyle file](https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style),
-e.g. to set a thinner `axes.linewidth` than any built-in style does.
+[.mplstyle file](https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style).
 
 The **plots** option selects which of the four panels (observed, trend,
 seasonal, residual) are drawn. By default all four are shown; list a subset to
-leave the others out, for example *plots=observed,trend* to draw only the
+leave the others out, for example, *plots=observed,trend* to draw only the
 observed series and its trend. At least one panel is required. The trend
 regression lines (**-o**, **-s**, **-g**) are only drawn when the trend panel is
 included. When **plot_dimensions** is not set, the default figure height scales
@@ -425,19 +413,16 @@ by *[t.rast.univar](t.rast.univar.md)*'s zonal extraction for an area
 (**zone** or **raster**), potentially making the module substantially faster
 to run.
 
+### Acknowledgement
+
+This tool was developed for the
+[Save the tiger! Save the Grasslands! Save the Water!](https://savethetiger.nl/)
+project, funded by the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
+
 ## NOTES
 
-This addon requires the Python packages *numpy*, *pandas*, *scipy*, *matplotlib*
-and *statsmodels*. They are all pip-installable, e.g.
-
-```sh
-pip install numpy pandas scipy matplotlib statsmodels
-```
-
-If a dependency is missing the module exits with a message indicating which
-package to install. Exception is *pygam*, which is an optional dependency
-(`pip install pygam`). It is imported only when **-g** is used, so the rest of
-the module works without it. The following packages are required:
+This addon requires the following Python packages:
 
 - **pandas** builds the time-indexed series, resamples it onto the regular axis
   (`Series.resample`) and fills gaps (`Series.interpolate`).
@@ -455,6 +440,17 @@ the module works without it. The following packages are required:
   ([LinearGAM](https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html)).
 - **numpy** provides the array operations underlying the above, and
   **matplotlib** renders the multi-panel plot.
+
+They are all pip-installable, e.g.
+
+```sh
+pip install numpy pandas scipy matplotlib statsmodels
+```
+
+If a dependency is missing the module exits with a message indicating which
+package to install. Exception is *pygam*, which is an optional dependency
+(`pip install pygam`). It is imported only when **-g** is used, so the rest of
+the module works without it.
 
 ## EXAMPLES
 
@@ -627,7 +623,7 @@ t.rast.stl strds=tempmean raster=forest_mask -d output=t_rast_stl_raster.png
 
 Supply a second strds with **strds2** to decompose and analyze it alongside the
 first. Both are drawn on the same panels, the second on its own (right) y-axis
-(here temperature against precipitation). Set the line colours with
+(here temperature against precipitation). Set the line colors with
 **color**/**color2** (for example comparing minimum and maximum temperature):
 
 ```sh
@@ -685,7 +681,12 @@ shared y-axis.
   Python. *Zenodo*. [pyGAM documentation](https://pygam.readthedocs.io/).
 - statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
   [statsmodels repository](https://github.com/statsmodels/statsmodels/).
-- Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Van Der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. Nature Methods, 17(3), 261–272. <https://doi.org/10.1038/s41592-019-0686-2>
+- Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T.,
+  Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Van Der
+  Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R.
+  J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0:
+  Fundamental algorithms for scientific computing in Python. Nature Methods,
+  17(3), 261–272. <https://doi.org/10.1038/s41592-019-0686-2>
 
 ## AUTHOR
 

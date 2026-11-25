@@ -1,46 +1,42 @@
 <h2>DESCRIPTION</h2>
 
-<em>t.rast.trend</em> bundles two related tools for STL decomposition
-(Seasonal-Trend decomposition using LOESS) and trend analysis of a
-space-time raster dataset (STRDS), sharing a common library of STL/trend-
-regression helpers (<em>trendlib</em>):
+<i>t.rast.trend</i> included tools for STL decomposition (Seasonal- Trend
+decomposition using LOESS) and trend analysis of a space-time raster dataset
+(STRDS):
 
 <ul>
-  <li><em><a href="t.rast.stl.html">t.rast.stl</a></em> decomposes and
-  plots the series at a single point, or the mean/median series over a
-  zone or raster, optionally with OLS, Theil-Sen and/or GAM trend
-  lines.</li>
-  <li><em><a href="t.rast.stl2ca.html">t.rast.stl2ca</a></em> decomposes
-  and compares the series of every category of a classification (a CELL
-  raster's own cell values, or a vector map grouped by an attribute
-  column) on one multi-panel plot.</li>
+  <li><i><a href="t.rast.stl.md">t.rast.stl</a></i> decomposes and plots the
+  series at a single point, or the mean/median series over a zone or raster,
+  optionally with OLS, Theil-Sen and/or GAM trend lines.</li>
+  <li><i><a href="t.rast.stl2ca.md">t.rast.stl2ca</a></i> decomposes and
+  compares the series of every category of a classification (a CELL raster's own
+  cell values, or a vector map grouped by an attribute column) on one
+  multi-panel plot.</li>
 </ul>
 
-<p>
-Installing <em>t.rast.trend</em> installs both tools together with the
-shared <em>trendlib</em> they depend on. Installing <em>t.rast.stl</em>
-or <em>t.rast.stl2ca</em> on its own does not install <em>trendlib</em>,
-so install <em>t.rast.trend</em> first (or alongside) if installing
-either tool individually.
+<h3>Acknowledgement</h3>
 
-<h2>NOTES</h2>
+This tool was developed for the
+<a href="https://savethetiger.nl/">Save the tiger! Save the Grasslands! Save the Water!</a>
+project, funded by the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
 
-The two tools do not expose an identical set of options:
-<em>t.rast.stl2ca</em> has no second STRDS, no OLS trend line, no GAM
-trend curve and no point-vector output, since these would need to be
-meaningful across an arbitrary number of categories rather than one or
-two fixed areas; see its own documentation for details.
+<h2>Notes</h2>
+
+Installing <i>t.rast.trend</i> installs both tools together with the shared
+<i>trendlib</i> they depend on. Installing <i>t.rast.stl</i> or
+<i>t.rast.stl2ca</i> on its own does not install <i>trendlib</i>, so install
+<i>t.rast.trend</i> first (or alongside) if installing either tool individually.
 
 <h2>SEE ALSO</h2>
 
-<em><a href="t.rast.stl.html">t.rast.stl</a></em>,
-<em><a href="t.rast.stl2ca.html">t.rast.stl2ca</a></em>
+<i><a href="t.rast.stl.md">t.rast.stl</a></i>,
+<i><a href="t.rast.stl2ca.md">t.rast.stl2ca</a></i>
 
 <h2>AUTHOR</h2>
 
-<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
-href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
-Biomonitoring</a> and <a
-href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
-Landscapes</a> research groups at the <a href="https://has.nl">HAS green
-academy</a>
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative Biomonitoring</a>
+and
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust Landscapes</a>
+research groups at the <a href="https://has.nl">HAS green academy</a>
