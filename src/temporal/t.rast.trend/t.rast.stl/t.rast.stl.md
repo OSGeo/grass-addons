@@ -17,6 +17,7 @@ each registered step the average or median value of all the pixels in the area.
 The resulting series is regularized onto an evenly, user-defined, spaced time
 axis, and then run through
 [statsmodels.tsa.seasonal.STL](https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html).
+
 ### About STL
 
 Environmental time series of e.g., a vegetation index, land surface temperature,
@@ -418,7 +419,7 @@ to run.
 This tool was developed for the
 [Save the tiger! Save the Grasslands! Save the Water!](https://savethetiger.nl/)
 project, funded by the Dutch Research Council (NWO) under award
-https://doi.org/10.61686/UYHYF97856.
+<https://doi.org/10.61686/UYHYF97856>.
 
 ## NOTES
 

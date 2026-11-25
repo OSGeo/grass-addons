@@ -468,7 +468,7 @@ if not callable(globals().get("_")):
 # command line) so a plain module scan (--help, g.extension) never needs
 # the scientific stack installed.
 #
-# Derive the path from the script's location. set_path() is a fallback 
+# Derive the path from the script's location. set_path() is a fallback
 # for any layout that assumption does not hold.
 _lib_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

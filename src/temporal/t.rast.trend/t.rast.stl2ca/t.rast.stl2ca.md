@@ -26,7 +26,7 @@ evenly spaced time axis, and then run through
 This tool was developed for the
 [Save the tiger! Save the Grasslands! Save the Water!](https://savethetiger.nl/)
 project, funded by the Dutch Research Council (NWO) under award
-https://doi.org/10.61686/UYHYF97856.
+<https://doi.org/10.61686/UYHYF97856>.
 
 ### About STL
 
