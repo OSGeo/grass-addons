@@ -266,10 +266,12 @@ jobs:
           PATH="${GRASS_DIR}/bin:${GRASS_DIR}/lib:${ADDONS}/bin:${ADDONS}/scripts"
           export PATH="${PATH}:/c/OSGeo4W/bin:/usr/bin:/mingw64/bin"
 
-          # The compile step leaves only zip files; unpack them into one
-          # directory, as g.extension would, so tests use what users get.
+          # The compile step leaves one zip per addon (plus the build logs);
+          # unpack the addons into one directory, as g.extension would,
+          # so tests use what users get.
           mkdir "$ADDONS"
           for zip in "${WORKSPACE}"/addons/*.zip; do
+            [ "$(basename "$zip")" = "logs.zip" ] && continue
             "$PYTHON" -m zipfile -e "$zip" "$ADDONS"
           done
 
@@ -278,6 +280,9 @@ jobs:
           # Windows Python needs Windows-style paths (no grass command here).
           export GISBASE="$(cygpath -w "$GRASS_DIR")"
           export GRASS_ADDON_BASE="$(cygpath -w "$ADDONS")"
+          # GDAL and PROJ cannot find their data files here (e.g. osmconf.ini).
+          export GDAL_DATA="$(cygpath -w /c/OSGeo4W/apps/gdal/share/gdal)"
+          export PROJ_DATA="$(cygpath -w /c/OSGeo4W/share/proj)"
           # Addons that bundle a Python package install it under etc/<tool>/;
           # add those dirs so their tests can import the package.
           etc_paths="$(find "$ADDONS/etc" -maxdepth 1 -type d -name '*.*' | paste -sd: -)"
