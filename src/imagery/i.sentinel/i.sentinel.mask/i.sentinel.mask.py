@@ -356,18 +356,18 @@ def get_overlap(clouds, dark_pixels, old_region, new_region):
         w=new_region["west"],
     )
     # measure overlap
-    overlap = int(
-        gs.read_command(
-            "r.stats",
-            quiet=True,
-            flags="cn",
-            input=f"{clouds},{dark_pixels}",
-            separator=",",
-        )
-        .strip()
-        .split(",")[2]
-        .strip()
-    )
+    overlap_str = gs.read_command(
+        "r.stats",
+        quiet=True,
+        flags="cn",
+        input=f"{clouds},{dark_pixels}",
+        separator=",",
+    ).strip()
+    if len(overlap_str) == 0:
+        overlap = 0
+    else:
+        overlap = int(overlap_str.split(",")[2].strip())
+
     # move map back
     gs.run_command(
         "r.region",
