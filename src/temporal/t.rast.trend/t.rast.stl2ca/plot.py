@@ -6,9 +6,6 @@
 #               for every category of a classification, each in its own
 #               color, plus the vlines= parser.
 #
-#               Originally split out of t.rast.stl; t.rast.stl2ca keeps its
-#               own copy since each GRASS addon is installed independently.
-#
 # COPYRIGHT:    (c) 2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
