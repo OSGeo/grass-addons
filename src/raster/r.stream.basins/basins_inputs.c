@@ -124,13 +124,10 @@ int ram_process_streams(char **cat_list, CELL **streams, int number_of_streams,
         for (c = 0; c < ncols; ++c) {
             streams_cell = streams[r][c];
             if (streams_cell > 0) {
-                if (outlets_num > 6 * (out_max - 1))
-                    G_fatal_error(
-                        _("Stream and direction maps probably do not match"));
-
-                if (outlets_num > (out_max - 1)) {
-                    outlets = (OUTLET *)G_realloc(outlets,
-                                                  out_max * 6 * sizeof(OUTLET));
+                if (outlets_num >= out_max) {
+                    out_max *= 2;
+                    outlets =
+                        (OUTLET *)G_realloc(outlets, out_max * sizeof(OUTLET));
                 }
 
                 dirs_cell = dirs[r][c];
@@ -216,13 +213,11 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
         for (c = 0; c < ncols; ++c) {
             Segment_get(streams, &streams_cell, r, c);
             if (streams_cell > 0) {
-                if (outlets_num > 6 * (out_max - 1))
-                    G_fatal_error(
-                        _("Stream and direction maps probably do not match"));
-
-                if (outlets_num > (out_max - 1))
-                    outlets = (OUTLET *)G_realloc(outlets,
-                                                  out_max * 6 * sizeof(OUTLET));
+                if (outlets_num >= out_max) {
+                    out_max *= 2;
+                    outlets =
+                        (OUTLET *)G_realloc(outlets, out_max * sizeof(OUTLET));
+                }
 
                 Segment_get(dirs, &dirs_cell, r, c);
                 d = abs(dirs_cell); /* abs */
