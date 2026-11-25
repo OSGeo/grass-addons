@@ -448,6 +448,7 @@
 
 
 import atexit
+import os
 import sys
 
 import grass.script as gs
@@ -461,13 +462,23 @@ if not callable(globals().get("_")):
 # files (see the ETCFILES entry in the Makefile). trend.py is instead
 # shared with t.rast.stl via the trendlib library of the t.rast.trend
 # bundle both addons are installed under (see t.rast.trend/trendlib and
-# its own Makefile). set_path() finds both whether this script is run
-# from its installed location or straight from the source tree. Each
-# library module leaves its own numpy/pandas/matplotlib/statsmodels/scipy
-# names as None at import time (set below, by lazy_import_py_modules(),
-# once GRASS has parsed the command line) so a plain module scan
-# (--help, g.extension) never needs the scientific stack installed.
-set_path("t.rast.stl2ca")
+# its own Makefile). Each library module leaves its own
+# numpy/pandas/matplotlib/statsmodels/scipy names as None at import time
+# (set below, by lazy_import_py_modules(), once GRASS has parsed the
+# command line) so a plain module scan (--help, g.extension) never needs
+# the scientific stack installed.
+#
+# Derive the path from the script's location. set_path() is a fallback 
+# for any layout that assumption does not hold.
+_lib_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "etc",
+    "t.rast.stl2ca",
+)
+if os.path.isdir(_lib_path):
+    sys.path.insert(0, _lib_path)
+else:
+    set_path("t.rast.stl2ca")
 set_path(modulename="t.rast.trend", dirname="trendlib", path="..")
 import extract  # noqa: E402
 import plot  # noqa: E402
