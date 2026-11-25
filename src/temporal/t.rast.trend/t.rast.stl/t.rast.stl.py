@@ -538,14 +538,14 @@ if not callable(globals().get("_")):
     from gettext import gettext as _
 
 # extract.py/plot.py splits out function to reduce sice of main script.
-# trend.py is shared with t.rast.stl2ca via the trendlib library 
+# trend.py is shared with t.rast.stl2ca via the trendlib library
 # of the t.rast.trend bundle. Each library module leaves its own
 # numpy/pandas/matplotlib/statsmodels/scipy names as None at import time
 # (set below, by lazy_import_py_modules(), once GRASS has parsed the
 # command line) so a plain module scan (--help, g.extension) never needs
 # the scientific stack installed.
 #
-# Derive the path from the script's location. set_path() is a fallback 
+# Derive the path from the script's location. set_path() is a fallback
 # for any layout that assumption does not hold.
 _lib_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "etc", "t.rast.stl"
