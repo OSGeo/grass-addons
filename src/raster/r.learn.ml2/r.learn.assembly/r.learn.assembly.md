@@ -280,6 +280,6 @@ group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-p
 group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/).
 This addon was created with support of the Save the Tiger! Save the Grasslands!
 Save the Water! project, funded by the Dutch Research Council (NWO) under award
-https://doi.org/10.61686/UYHYF97856.
+<https://doi.org/10.61686/UYHYF97856>.
 
 Built on the *r.learn.ml2* toolset by Steven Pawley.
