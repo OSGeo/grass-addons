@@ -196,15 +196,18 @@ training information from an older (1996) land cover dataset.
 Note that this example must be run in the "landsat" mapset of the North Carolina
 sample data set location.
 
-First, we are going to generate some training pixels from an older (1996) land
-cover classification.
+First, we generate some training pixels from an older (1996) land cover
+classification. We exclude categories 2 and 7 as they are very rare in the study
+area.
 
 ```sh
 g.region raster=landclass96 -p
+r.mask -i landclass96 maskcat="2 7"
 r.random -s input=landclass96 npoints=5000 raster=training_pixels
+r.mask -r # you may want to opt to keep the mask
 ```
 
-Then we can use these training points to perform a classification on the more
+We then use these training points to perform a classification on the more
 recently obtained landsat 7 image. By default, this will use the stacking
 ensembly method.
 
@@ -223,10 +226,6 @@ r.learn.predict group=lsat7_2000 load_model=ensemble.gz output=classification
 r.colors map=classification raster=landclass96
 ```
 
-The original map (left) and the prediction map (right) are shown below:
-
-![Original map and prediction map.](r_learn_assembly.png)
-
 The same configuration can be reused for a voting ensemble; only the options
 change. The base models and their weights in `ensemble.json` are shared, and the
 `final_estimator` entry is ignored for voting. Here we reuse it for soft voting,
@@ -243,6 +242,11 @@ r.learn.predict group=lsat7_2000 load_model=ensemble_voting.gz \
     output=classification_voting
 r.colors map=classification_voting raster=landclass96
 ```
+
+The original map (left) and the prediction map (center) and the prediction map
+based on soft voting (right) are shown below:
+
+![Original map and prediction map based on soft-voting.](r_learn_assembly.png)
 
 ## REFERENCES
 
@@ -269,10 +273,13 @@ scikit-learn documentation on
 
 ## AUTHORS
 
-[Paulo van Breugel](https://ecodiv.earth), [HAS green
-academy](https://has.nl), [Innovative Biomonitoring research
+[Paulo van Breugel](https://ecodiv.earth), [HAS green academy](https://has.nl),
+[Innovative Biomonitoring research
 group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
 [Climate-robust Landscapes research
-group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/).
+This addon was created with support of the Save the Tiger! Save the Grasslands!
+Save the Water! project, funded by the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
 
 Built on the *r.learn.ml2* toolset by Steven Pawley.

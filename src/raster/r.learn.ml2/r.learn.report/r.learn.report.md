@@ -110,19 +110,29 @@ class probabilities, such as a hard-voting ensemble.
 
 ## EXAMPLES
 
-Train a model and build a report from its outputs:
+Train a model and build a report from its outputs. First, we generate some
+training pixels from an older (1996) land cover classification. We exclude
+categories 2 and 7 as they are very rare in the study area.
 
 ```sh
-# Set region and create random points
 g.region raster=landclass96 -p
+r.mask -i landclass96 maskcat="2 7"
 r.random -s input=landclass96 npoints=5000 raster=training_pixels
+r.mask -r # you may want to opt to keep the mask
+```
 
-# write a template for the chosen base models
+Next, we write the template for the chosen base models.
+
+```sh
 r.learn.assembly models=RandomForestClassifier,SVC,HistGradientBoostingClassifier \
     write_config=ensemble.json
+```
 
-# (edit ensemble.json), then train with 5-fold outer cross-validation
-r.learn.assembly -fb config=ensemble.json group=lsat7_2000 \
+Use the ensemble.json (optionally after editing it to meet your needs) as input
+to train with 5-fold outer cross-validation:
+
+```sh
+r.learn.assembly -f config=ensemble.json group=lsat7_2000 \
     training_map=training_pixels ensemble_type=stacking \
     cv=4 inner_cv=4 classif_file=classif.csv \
     preds_file=preds.csv fimp_file=fimp.csv save_training=training.csv \
@@ -152,7 +162,7 @@ The permutation feature importance is based on the drop in model performance
 when each predictor in turn is randomly shuffled. Larger values indicate
 predictors the model relies on more.
 
-![Partial-dependence response curves for the class agriculture.](r_learn_report_03.png)
+![Partial-dependence response curves for the class herbaceous.](r_learn_report_03.png)
 
 Partial-dependence curves show how the predicted outcome changes as one
 predictor is varied across its range (5th to 95th percentile), while the other
@@ -160,7 +170,7 @@ predictors are marginalized over the training data. For a classification model
 the vertical axis is the predicted probability of the class; for a regression
 model it is the predicted value.
 
-![Centered response curves for the class agriculture.](r_learn_report_04.png)
+![Centered response curves for the class herbaceous.](r_learn_report_04.png)
 
 The centered curves below start each sample at zero at the left of the
 predictor's range, so the spread shows how differently the predictor affects
@@ -196,6 +206,9 @@ Statistical Learning: Data Mining, Inference, and Prediction. Springer.
 group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
 [Climate-robust Landscapes research
 group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
-of the [HAS green academy](https://has.nl),
+of the [HAS green academy](https://has.nl). This addon was created with support
+of the Save the Tiger! Save the Grasslands! Save the Water! project, funded by
+the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
 
 Built on the *r.learn.ml2* toolset by Steven Pawley.

@@ -6,8 +6,8 @@ rasters of an imagery group, using labelled pixels or training points as the
 response. It is a companion to <i>r.learn.train</i>, which trains one estimator
 at a time. The fitted ensemble model can be used in <i>r.learn.predict</i> like
 a model from <i>r.learn.train</i>. For more information about the models and
-their hyper-parameters, see the manual page of <i><a
-href="r.learn.train.md">r.learn.train</a></i>.
+their hyper-parameters, see the manual page of
+<i><a href="r.learn.train.md">r.learn.train</a></i>.
 
 <p>
 Two ensemble strategies are supported through the <b>ensemble_type</b> option:
@@ -18,18 +18,16 @@ Two ensemble strategies are supported through the <b>ensemble_type</b> option:
   voting='soft' averages the predicted class probabilities, while voting='hard'
   selects the class receiving the most (weighted) votes. For regression, a
   (weighted) average of the model predictions is used.</li>
-
   <li><b>stacking</b> combines predictions from the base models into a single
   prediction. A second-level model (meta-learner) is trained on their
   cross-validated predictions to learn how best to combine them. This approach
   aims to exploit the strengths of different models and improve overall
-  predictive performance. For more information, see <a
-  href="https://scikit-learn.org/stable/modules/ensemble.html#stacking">Stacked
-  generalization</a>. The meta-model coefficients reported after training are
-  the fitted coefficients of the meta-learner, not normalized per-model weights:
-  a base model can contribute several inputs and the coefficients can be
-  negative, so they are not directly comparable to the fixed voting
-  weights.</li>
+  predictive performance. For more information, see
+  <a href="https://scikit-learn.org/stable/modules/ensemble.html#stacking">Stacked generalization</a>.
+  The meta-model coefficients reported after training are the fitted
+  coefficients of the meta-learner, not normalized per-model weights: a base
+  model can contribute several inputs and the coefficients can be negative, so
+  they are not directly comparable to the fixed voting weights.</li>
 </ul>
 
 <p>
@@ -45,7 +43,7 @@ while the shared settings (ensemble type, weighting, cross-validation,
 preprocessing) are module options. A typical run therefore has two steps.
 
 <p>
-<b>Write a configuration template.</b> The module writes a JSON file, filled
+1. <b>Write a configuration template.</b> The module writes a JSON file, filled
 with each estimator's scikit-learn default values, and exits. It holds two kinds
 of entry, kept separate:
 
@@ -62,19 +60,25 @@ of entry, kept separate:
 <p>
 Give the output path with <b>write_config</b>:
 
-<p>
-<tt>sh r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
-write_config=ensemble.json </tt>
+<div class="code">
+  <pre>
+r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
+    write_config=ensemble.json
+</pre>
+</div>
 
 <p>
-<b>Edit and run</b>, adjust the parameters and (for voting) the weights in
+2. <b>Edit and run</b>, adjust the parameters and (for voting) the weights in
 <tt>ensemble.json</tt>, then pass it back with the <b>config</b> option together
 with the training data and the shared settings:
 
-<p>
-<tt>sh r.learn.assembly config=ensemble.json group=predictors \
-training_points=training_pts field=class ensemble_type=stacking \ cv=5
-inner_cv=5 save_model=ensemble.gz </tt>
+<div class="code">
+  <pre>
+r.learn.assembly config=ensemble.json group=predictors \
+    training_points=training_pts field=class ensemble_type=stacking \
+    cv=5 inner_cv=5 save_model=ensemble.gz
+</pre>
+</div>
 
 <p>
 The configuration file (see below) is what drives the ensemble and gives it its
@@ -215,28 +219,32 @@ the model uses each predictor rather than how it generalizes.
 
 <h2>EXAMPLES</h2>
 
-We are using the same example as in *[r.learn.train](r.learn.train.md)*, using
-the GRASS GIS sample North Carolina data set as a basis to perform a landsat
-classification. We are going to classify a Landsat 7 scene from 2000, using
-training information from an older (1996) land cover dataset.
+We are using the same example as in
+<i><a href="r.learn.train.md">r.learn.train</a></i>, using the GRASS GIS sample
+North Carolina data set as a basis to perform a landsat classification. We are
+going to classify a Landsat 7 scene from 2000, using training information from
+an older (1996) land cover dataset.
 
 <p>
 Note that this example must be run in the "landsat" mapset of the North Carolina
 sample data set location.
 
 <p>
-First, we are going to generate some training pixels from an older (1996) land
-cover classification.
+First, we generate some training pixels from an older (1996) land cover
+classification. We exclude categories 2 and 7 as they are very rare in the study
+area.
 
 <div class="code">
   <pre>
 g.region raster=landclass96 -p
+r.mask -i landclass96 maskcat="2 7"
 r.random -s input=landclass96 npoints=5000 raster=training_pixels
+r.mask -r # you may want to opt to keep the mask
 </pre>
 </div>
 
 <p>
-Then we can use these training points to perform a classification on the more
+We then use these training points to perform a classification on the more
 recently obtained landsat 7 image. By default, this will use the stacking
 ensembly method.
 
@@ -244,7 +252,7 @@ ensembly method.
   <pre>
 # 1. write a template for the chosen base models
 r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
-    write_config=ensemble.json
+    write_config=ensemble.json 
 
 # 2. (edit ensemble.json), then train with 5-fold outer cross-validation
 r.learn.assembly config=ensemble.json group=lsat7_2000 \
@@ -256,13 +264,6 @@ r.learn.predict group=lsat7_2000 load_model=ensemble.gz output=classification
 r.colors map=classification raster=landclass96
 </pre>
 </div>
-
-<p>
-The original map (left) and the prediction map (right) are shown below:
-
-<center>
-	<img src="r_learn_assembly.png" alt="Assembly classification result">
-</center>
 
 <p>
 The same configuration can be reused for a voting ensemble; only the options
@@ -285,6 +286,13 @@ r.colors map=classification_voting raster=landclass96
 </pre>
 </div>
 
+<p>
+The original map (left) and the prediction map (center) and the prediction map
+based on soft voting (right) are shown below:
+
+<p>
+<img src="r_learn_assembly.png" alt="Original map and prediction map based on soft-voting.">
+
 <h2>REFERENCES</h2>
 
 Buitinck, L., Louppe, G., Blondel, M., Pedregosa, F., Mueller, A., Grisel, O.,
@@ -302,23 +310,23 @@ Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research,
 
 <h2>SEE ALSO</h2>
 
-<i><a href="r.learn.ml2.md">r.learn.ml2</a></i>, <i><a
-href="r.learn.predict.md">r.learn.predict</a></i>, <i><a
-href="r.learn.train.md">r.learn.train</a></i>
+<i><a href="r.learn.ml2.md">r.learn.ml2</a></i>,
+<i><a href="r.learn.predict.md">r.learn.predict</a></i>,
+<i><a href="r.learn.train.md">r.learn.train</a></i>
 
 <p>
-scikit-learn documentation on <a
-href="https://scikit-learn.org/stable/modules/ensemble.html">ensemble
-methods</a>.
+scikit-learn documentation on
+<a href="https://scikit-learn.org/stable/modules/ensemble.html">ensemble methods</a>.
 
 <h2>AUTHORS</h2>
 
-<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
-href="https://has.nl">HAS green academy</a>, <a
-href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
-Biomonitoring research group</a>, <a
-href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
-Landscapes research group</a>
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,
+<a href="https://has.nl">HAS green academy</a>,
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative Biomonitoring research group</a>,
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust Landscapes research group</a>.
+This addon was created with support of the Save the Tiger! Save the Grasslands!
+Save the Water! project, funded by the Dutch Research Council (NWO) under award
+https://doi.org/10.61686/UYHYF97856.
 
 <p>
 Built on the <i>r.learn.ml2</i> toolset by Steven Pawley.
