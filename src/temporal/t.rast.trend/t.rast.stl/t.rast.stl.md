@@ -281,8 +281,8 @@ rank-correlation test (SciPy's
 [kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
 Note that this differs from a full Mann-Kendall test, which applies tie and
 variance corrections. The reported *p*-values may therefore differ slightly when
-the data contain ties. Note that the Theil-Sen slope with the non-parametric Kendall test
-is more resistant to outliers and does not assume normal residuals.
+the data contain ties. Note that the Theil-Sen slope with the non-parametric
+Kendall test is more resistant to outliers and does not assume normal residuals.
 
 Which line(s) appear on the trend panel is controlled by flags: **-o** draws the
 OLS line, **-s** draws the Theil-Sen line, and **-g** draws a GAM curve
