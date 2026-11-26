@@ -107,6 +107,7 @@ jobs:
             netcdf-devel
             proj-devel
             python3-core
+            python3-gdal
             python3-jupyter
             python3-matplotlib
             python3-numpy
@@ -251,6 +252,76 @@ jobs:
             echo "addons_commit=${GITHUB_SHA}"
             echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } > build-info.txt
+
+      - name: Run pytest tests
+        timeout-minutes: 20
+        shell: msys2 {0}
+        run: |
+          WORKSPACE="$(cygpath -u $GITHUB_WORKSPACE)"
+          GRASS_DIR=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
+          ADDONS="${WORKSPACE}/addons-installed"
+          PYTHON=/c/OSGeo4W/apps/Python312/python.exe
+
+          export PYTHONHOME=/c/OSGeo4W/apps/Python312
+          PATH="${GRASS_DIR}/bin:${GRASS_DIR}/lib:${ADDONS}/bin:${ADDONS}/scripts"
+          export PATH="${PATH}:/c/OSGeo4W/bin:/usr/bin:/mingw64/bin"
+
+          # The compile step leaves one zip per addon (plus the build logs);
+          # unpack the addons into one directory, as g.extension would,
+          # so tests use what users get.
+          mkdir "$ADDONS"
+          for zip in "${WORKSPACE}"/addons/*.zip; do
+            [ "$(basename "$zip")" = "logs.zip" ] && continue
+            "$PYTHON" -m zipfile -e "$zip" "$ADDONS"
+          done
+
+          "$PYTHON" -m pip install -r grass-addons/.github/workflows/requirements.txt
+
+          # Windows Python needs Windows-style paths (no grass command here).
+          export GISBASE="$(cygpath -w "$GRASS_DIR")"
+          export GRASS_ADDON_BASE="$(cygpath -w "$ADDONS")"
+          # GDAL and PROJ cannot find their data files here (e.g. osmconf.ini).
+          export GDAL_DATA="$(cygpath -w /c/OSGeo4W/apps/gdal/share/gdal)"
+          export PROJ_DATA="$(cygpath -w /c/OSGeo4W/share/proj)"
+          # Addons that bundle a Python package install it under etc/<tool>/;
+          # add those dirs so their tests can import the package.
+          etc_paths="$(find "$ADDONS/etc" -maxdepth 1 -type d -name '*.*' | paste -sd: -)"
+          PYTHONPATH="$(cygpath -pw "${GRASS_DIR}/etc/python:${etc_paths}")"
+          export PYTHONPATH
+
+          cd grass-addons/src
+          status=0
+          while IFS= read -r tests_dir; do
+            addon="$(dirname "$tests_dir")"
+            pytest_args=()
+            case "$addon" in
+              # r.estimap.recreation uses downloads data
+              # over the network, so we skip it for CI.
+              ./raster/r.estimap.recreation) continue ;;
+              # Shell script; shell-script addons and r.stream.* tools
+              # do not build on Windows.
+              ./raster/r.stream.variables) continue ;;
+              # C tools that currently fail to compile on Windows.
+              ./raster/r.dem/r.dem.icp | ./raster/r.dem/r.dem.nk) continue ;;
+              # Tests fail on Windows when parsing v.out.ascii output;
+              # needs investigation.
+              ./raster/r.centroids | ./vector/v.profile.points) continue ;;
+              # Integration tests need network and run only when GISBASE is set (not set on Linux CI);
+              # on Windows they fail: grass.script has no attribute 'vector_info_topo'.
+              ./vector/v.in.ags) pytest_args=(-k "not TestIntegration") ;;
+            esac
+            if [ -f "$addon/requirements.txt" ]; then
+              "$PYTHON" -m pip install -r "$addon/requirements.txt"
+            fi
+            echo "::group::pytest $addon"
+            # For increased isolation, run each addon in its own process.
+            rc=0
+            "$PYTHON" -m pytest --verbose --color=yes -ra "${pytest_args[@]}" "$tests_dir" || rc=$?
+            echo "::endgroup::"
+            # rc 5 means no tests were collected; only other codes are failures.
+            if [ "$rc" -ne 0 ] && [ "$rc" -ne 5 ]; then status=1; fi
+          done < <(find . -type d -name tests | sort)
+          exit "$status"
 
       - name: Make GRASS Addons available
         if: ${{ always() }}
