@@ -932,11 +932,11 @@ def test_get_geocoding_reads_only_rows_inside_region(s3, scene):
 def test_get_row_window(s3, scene, chunk_size):
     set_region(**scene.region)
     bounds = gs.parse_command("g.region", flags="ugb")
-    with netCDF4.Dataset(
-        zipfile.ZipFile(scene.zip).extract(
-            str(scene.root / "geodetic_in.nc"), path=scene.zip.parent
+    with zipfile.ZipFile(scene.zip) as zip_file:
+        geodetic = zip_file.extract(
+            (scene.root / "geodetic_in.nc").as_posix(), path=scene.zip.parent
         )
-    ) as dataset:
+    with netCDF4.Dataset(geodetic) as dataset:
         lat, lon = dataset["latitude_in"], dataset["longitude_in"]
         assert s3.get_row_window(lat, lon, bounds, chunk_size) == slice(0, SIZE)
         far = {**bounds, "ll_s": "10", "ll_n": "11"}
