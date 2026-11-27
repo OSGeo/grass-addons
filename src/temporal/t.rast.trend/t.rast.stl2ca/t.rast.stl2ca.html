@@ -300,30 +300,11 @@ monotonic-trend <i>p</i>-value from Kendall's rank-correlation test (SciPy's
 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
 This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
 apply the continuity correction, so the <i>p</i>-values may differ slightly from
-those of other Mann-Kendall implementations. The <b>mk_test</b> option offers
-variants that correct for serial autocorrelation (see the note on significance
-below).
+those of other Mann-Kendall implementations.
 
 <p>
-The <b>-s</b> flag draws the Theil-Sen line on the trend panel;
-<b>stats_output</b> writes its numbers (slope, Kendall's tau, p-value) to a CSV
-file, one row per category, regardless of <b>-s</b>.
-
-<p>
-The slopes are expressed per observation of the regularized series, i.e., per
-step of the chosen <b>frequency</b> (absolute series) or <b>step</b> (relative
-series). For a daily (D) series this is per day; for a 16-day composite (16D) it
-is per 16-day step, for a monthly (MS) series per month, and so on. Use
-<b>slope_unit</b> to express them per a different, readable calendar unit
-instead (day/week/month/year), or <tt>auto</tt> (the default) to pick one from
-the series span.
-
-<p>
-<b>A note on significance.</b> By default, the reported <i>p</i>-value (the
-Kendall test behind Theil-Sen) assumes independent residuals. Deseasonalized
-environmental series are almost always serially autocorrelated, which inflates
-significance (<i>p</i>-values come out too small). The <b>mk_test</b> option
-selects a Mann-Kendall variant that accounts for this, computed with the
+The <b>mk_test</b> option offers variants that correct for serial
+autocorrelation, computed with the
 <a href="https://github.com/mmhs013/pyMannKendall">pymannkendall</a> package:
 
 <ul>
@@ -339,11 +320,28 @@ selects a Mann-Kendall variant that accounts for this, computed with the
 </ul>
 
 <p>
-The variants only change the Mann-Kendall tau and <i>p</i>-value; the
-Theil-Sen slope is the same. For these variants, tau is pymannkendall's
-estimate (the Mann-Kendall <i>S</i> statistic divided by the number of pairs),
-which for the pre-whitening variant is computed on the pre-whitened series. It
-can therefore differ from the default tau.
+The variants only change the Mann-Kendall tau and <i>p</i>-value; the Theil-Sen
+slope is the same. For these variants, tau is pymannkendall's estimate (the
+Mann-Kendall <i>S</i> statistic divided by the number of pairs), which for the
+pre-whitening variant is computed on the pre-whitened series. It can therefore
+differ from the default tau.
+
+<p>
+The <b>-s</b> flag draws the Theil-Sen line on the trend panel;
+<b>stats_output</b> writes its numbers (slope, Kendall's tau, p-value) to a CSV
+file, one row per category, regardless of <b>-s</b>.
+
+<p>
+The slopes are reported as a change per time unit, set with <b>slope_unit</b>.
+The default, <tt>auto</tt>, picks the largest of day, week, month and year that
+the series spans at least three times, so a multi-year series is reported per
+year. Set <tt>day</tt>, <tt>week</tt>, <tt>month</tt> or <tt>year</tt> to choose
+the unit yourself, or <tt>step</tt> to report the change per observation of the
+regularized series, i.e., per step of the chosen <b>frequency</b> (absolute
+series) or <b>step</b> (relative series), e.g., per 16-day step for a 16D
+series. For a relative-time series, the calendar units are only available when
+its time unit is days, weeks, months or years; otherwise the slopes are reported
+per step.
 
 <p>
 The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
@@ -427,12 +425,13 @@ only if your system needs a different interactive backend (e.g., <tt>TkAgg</tt>,
 <p>
 <b>stats_output</b>, when given, writes the Theil-Sen/Kendall trend statistics
 (slope, tau, p-value, the <b>mk_test</b> variant, the reporting unit, number of
-observations fitted) to a CSV file, one row per category, and one row per <b>breakpoints</b> segment, when
-given, in addition to the whole-series row. This is independent of <b>-s</b>:
-the statistics are computed either way, this option just decides whether they
-are written out. With <b>-i</b>, the same table is also always shown in the HTML
-output, in a sidebar opened from the "Trend statistics" tab (see "Interactive
-plot" above), whether or not <b>stats_output</b> is given.
+observations fitted) to a CSV file, one row per category, and one row per
+<b>breakpoints</b> segment, when given, in addition to the whole-series row.
+This is independent of <b>-s</b>: the statistics are computed either way, this
+option just decides whether they are written out. With <b>-i</b>, the same table
+is also always shown in the HTML output, in a sidebar opened from the "Trend
+statistics" tab (see "Interactive plot" above), whether or not
+<b>stats_output</b> is given.
 
 <h3>Subsetting and performance</h3>
 
@@ -475,7 +474,8 @@ This addon requires the following Python packages:
   and the monotonic-trend <i>p</i>-value from Kendall's rank correlation
   (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
   <li><b>pymannkendall</b> computes the optional autocorrelation-corrected
-  Mann-Kendall tests selected with <b>mk_test</b>.</li>
+  Mann-Kendall tests selected with <b>mk_test</b>
+  (<a href="https://github.com/mmhs013/pymannkendall">pymannkendall</a>).</li>
   <li><b>numpy</b> provides the array operations underlying the above, and
   <b>matplotlib</b> renders the multi-panel plot.</li>
 </ul>
@@ -493,8 +493,8 @@ pip install numpy pandas scipy matplotlib statsmodels
 If a dependency is missing, the module exits with a message indicating which
 package to install. Exception is <i>pymannkendall</i>, which is an optional
 dependency (<tt>pip install pymannkendall</tt>). It is imported only when
-<b>mk_test</b> is set to another value than <tt>kendall</tt>, so the rest of
-the module works without it.
+<b>mk_test</b> is set to another value than <tt>kendall</tt>, so the rest of the
+module works without it.
 
 <h2>EXAMPLES</h2>
 
@@ -523,9 +523,9 @@ TODO
   <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part II article</a>.</li>
   <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
   for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
-  <li>Hussain, M. M., &amp; Mahmud, I. (2019). pyMannKendall: a python package for
-  non parametric Mann Kendall family of trend tests. <i>Journal of Open Source
-  Software</i>, 4(39), 1556.</li>
+  <li>Hussain et al., (2019). pyMannKendall: a python package for non parametric
+  Mann Kendall family of trend tests.. Journal of Open Source Software, 4(39),
+  1556, https://doi.org/10.21105/joss.01556</li>
   <li>Local regression. (2026). In <i>Wikipedia</i>
   <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
   <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and

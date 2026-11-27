@@ -96,8 +96,8 @@ for <tt>median</tt>. It is only valid with <tt>statistic=mean</tt> or
 <tt>statistic=median</tt>. Gaps in the band (missing timesteps, or dates
 excluded by <b>temporal_outliers</b>) are always filled by linear interpolation,
 regardless of the <b>interpolation</b> option, so a curvature-fitting method
-chosen for the series itself cannot overshoot and bulge the band past its true
-local range.
+chosen for the series itself cannot overshoot, causing the band past to pass
+past the actual local range.
 
 <p>
 A standard deviation or interquartile range estimated from very few pixels is
@@ -324,53 +324,11 @@ line (SciPy's
 reported with its slope and a monotonic-trend <i>p</i>-value from Kendall's
 rank-correlation test (SciPy's
 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
-This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
-apply the continuity correction, so the <i>p</i>-values may differ slightly from
-those of other Mann-Kendall implementations. The <b>mk_test</b> option offers
-variants that correct for serial autocorrelation (see the note on significance
-below). Note that the Theil-Sen slope with the
-non-parametric Kendall test is more resistant to outliers and does not assume
-normal residuals.
+This option is more resistant to outliers and does not assume normal residuals.
 
 <p>
-Which line(s) appear on the trend panel is controlled by flags: <b>-o</b> draws
-the OLS line, <b>-s</b> draws the Theil-Sen line, and <b>-g</b> draws a GAM
-curve (see below).
-
-<p>
-The <b>-t</b> flag adds the trend-line statistics (slope, R², Mann-Kendall
-<i>p</i>-value, and GAM net change) to the legend. The statistics are always
-printed to the terminal regardless of this flag.
-
-<p>
-The third fit, enabled with <b>-g</b>, is a <b>Generalized Additive Model</b>
-fitted with <a href="https://pygam.readthedocs.io/">pyGAM</a>: a smooth,
-flexible curve. By default it is shape-constrained to a monotone curve that
-never reverses direction; the <b>gam_direction</b> option sets the constraint
-direction: <tt>increasing</tt>, <tt>decreasing</tt>, <tt>auto</tt> (the default,
-which picks the direction from the sign of the Theil-Sen slope), or
-<tt>none</tt>, which fits an unconstrained curve free to change direction, with
-its smoothing chosen by cross-validation. The GAM is summarised by its <b>net
-change</b> (fitted value at the last point minus the first, over the fitted
-span) and the <b>explained deviance</b>; for an unconstrained (<tt>none</tt>)
-fit, net change describes only the overall shift between the endpoints, not the
-shape of the curve in between. The <b>-b</b> flag additionally shades the GAM's
-95% confidence band.
-
-<p>
-The slopes (OLS, Theil-Sen) and the GAM net change are expressed per observation
-of the regularized series, i.e., per step of the chosen <b>frequency</b>
-(absolute series) or <b>step</b> (relative series). For a daily (D) series this
-is per day; for a 16-day composite (16D) it is per 16-day step, for a monthly
-(MS) series per month, and so on.
-
-<p>
-<b>A note on significance.</b> By default, the reported <i>p</i>-values (both
-the OLS slope test and the Kendall test behind Theil-Sen) assume independent
-residuals. Deseasonalized environmental series are almost always serially
-autocorrelated, which inflates significance (<i>p</i>-values come out too
-small). For the Mann-Kendall <i>p</i>-value, the <b>mk_test</b> option selects
-a variant that accounts for this, computed with the
+The <b>mk_test</b> option offers alternative methods that correct for serial
+autocorrelation, computed with the
 <a href="https://github.com/mmhs013/pyMannKendall">pymannkendall</a> package:
 
 <ul>
@@ -386,12 +344,47 @@ a variant that accounts for this, computed with the
 </ul>
 
 <p>
-The variants only change the Mann-Kendall tau and <i>p</i>-value; the
-Theil-Sen slope is the same. For these variants, tau is pymannkendall's
-estimate (the Mann-Kendall <i>S</i> statistic divided by the number of pairs),
-which for the pre-whitening variant is computed on the pre-whitened series. It
-can therefore differ from the default tau. The OLS <i>p</i>-value is never
-corrected for autocorrelation.
+The variants only change the Mann-Kendall tau and <i>p</i>-value; the Theil-Sen
+slope is the same. For these variants, tau is pymannkendall's estimate (the
+Mann-Kendall <i>S</i> statistic divided by the number of pairs), which for the
+pre-whitening variant is computed on the pre-whitened series. It can therefore
+differ from the default tau. The OLS <i>p</i>-value is never corrected for
+autocorrelation.
+
+<p>
+The third fit, enabled with <b>-g</b>, is a <b>Generalized Additive Model</b>
+fitted with <a href="https://pygam.readthedocs.io/">pyGAM</a>: a smooth,
+flexible curve. By default it is shape-constrained to a monotone curve that
+never reverses direction; the <b>gam_direction</b> option sets the constraint
+direction: <tt>increasing</tt>, <tt>decreasing</tt>, <tt>auto</tt> (the default,
+which picks the direction from the sign of the Theil-Sen slope), or
+<tt>none</tt>, which fits an unconstrained curve free to change direction, with
+its smoothing chosen by cross-validation. The GAM is summarized by its <b>net
+change</b> (fitted value at the last point minus the first, over the fitted
+span) and the <b>explained deviance</b>; for an unconstrained (<tt>none</tt>)
+fit, net change describes only the overall shift between the endpoints, not the
+shape of the curve in between. The <b>-b</b> flag additionally shades the GAM's
+95% confidence band.
+
+<p>
+Which line(s) appear on the trend panel is controlled by flags: <b>-o</b> draws
+the OLS line, <b>-s</b> draws the Theil-Sen line, and <b>-g</b> draws a GAM
+curve (see below). The <b>-t</b> flag adds the trend-line statistics (slope, R²,
+Mann-Kendall <i>p</i>-value, and GAM net change) to the legend. The statistics
+are always printed to the terminal regardless of this flag.
+
+<p>
+The OLS and Theil-Sen slopes are reported as a change per time unit, set with
+<b>slope_unit</b>. The default, <tt>auto</tt>, picks the largest of day, week,
+month and year that the series spans at least three times, so a multi-year
+series is reported per year. Set <tt>day</tt>, <tt>week</tt>, <tt>month</tt> or
+<tt>year</tt> to choose the unit yourself, or <tt>step</tt> to report the change
+per observation of the regularized series, i.e., per step of the chosen
+<b>frequency</b> (absolute series) or <b>step</b> (relative series), e.g., per
+16-day step for a 16D series. For a relative-time series, the calendar units are
+only available when its time unit is days, weeks, months or years. Otherwise,
+the slopes are reported per step. The GAM net change is the total change over
+the fitted span, in the units of the data.
 
 <p>
 The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
@@ -483,12 +476,12 @@ seasonal amplitude envelope is included as
 <p>
 The <b>vector</b> option creates a point vector layer carrying the trend
 regression results (OLS slope, R², <i>p</i>-value, Theil-Sen slope, Mann-Kendall
-tau and <i>p</i>-value, and the <b>mk_test</b> variant used) as attributes.
-When a GAM was fitted (<b>-g</b>), its net change and explained deviance are
-stored as well. With <b>coordinates</b>
-the point is at the selected location; with <b>zone</b> or <b>raster</b> it is
-placed at the center of the zone's or raster's bounding box (a tag for the
-location, not a geometry derived from the area itself).
+tau and <i>p</i>-value, and the <b>mk_test</b> variant used) as attributes. When
+a GAM was fitted (<b>-g</b>), its net change and explained deviance are stored
+as well. With <b>coordinates</b> the point is at the selected location; with
+<b>zone</b> or <b>raster</b> it is placed at the center of the zone's or
+raster's bounding box (a tag for the location, not a geometry derived from the
+area itself).
 
 <h3>Subsetting and performance</h3>
 
@@ -532,7 +525,8 @@ This addon requires the following Python packages:
   (monotone)
   (<a href="https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html">LinearGAM</a>).</li>
   <li><b>pymannkendall</b> computes the optional autocorrelation-corrected
-  Mann-Kendall tests selected with <b>mk_test</b>.</li>
+  Mann-Kendall tests selected with <b>mk_test</b>
+  (<a href="https://github.com/mmhs013/pymannkendall">pymannkendall</a>).</li>
   <li><b>numpy</b> provides the array operations underlying the above, and
   <b>matplotlib</b> renders the multi-panel plot.</li>
 </ul>
@@ -547,7 +541,7 @@ pip install numpy pandas scipy matplotlib statsmodels
 </div>
 
 <p>
-If a dependency is missing the module exits with a message indicating which
+If a dependency is missing, the module exits with a message indicating which
 package to install. Exceptions are <i>pygam</i> and <i>pymannkendall</i>, which
 are optional dependencies (<tt>pip install pygam pymannkendall</tt>).
 <i>pygam</i> is imported only when <b>-g</b> is used, and <i>pymannkendall</i>
@@ -578,9 +572,9 @@ title="Average temperature" description="Monthly temperature average in NC [deg 
 <p>
 Now we register raster maps into the space-time raster datasets we just created.
 We use <tt>g.list</tt> to list separately temperature and precipitation maps.
-Note that <tt>g.list</tt> lists maps alphabetically which in this case orders
-the maps chronologically which is what we need. Using backticks to pass the maps
-directly to t.register
+Note that <tt>g.list</tt> lists maps alphabetically, which in this case orders
+the maps chronologically, which is what we need. Using backticks to pass the
+maps directly to t.register
 
 <div class="code">
   <pre>
@@ -767,7 +761,7 @@ t.rast.stl strds=tempmean raster=forest_mask -d output=t_rast_stl_raster.png
 Supply a second strds with <b>strds2</b> to decompose and analyze it alongside
 the first. Both are drawn on the same panels, the second on its own (right)
 y-axis (here temperature against precipitation). Set the line colors with
-<b>color</b>/<b>color2</b> (for example comparing minimum and maximum
+<b>color</b>/<b>color2</b> (for example, comparing minimum and maximum
 temperature):
 
 <div class="code">
@@ -798,8 +792,8 @@ tau=-0.006, p=0.917
 
 <p>
 The trend lines are drawn for both datasets; their slopes and statistics are
-printed to the terminal (prefixed with each dataset's name). Tip: write as svg
-file to make it easier to improve the plot, like placing legends, etc. manually
+printed to the terminal (prefixed with each dataset's name). Tip: write as a svg
+file to make it easier to improve the plot, like placing legends, etc., manually
 in e.g., Inkscape.
 
 <p>
@@ -828,9 +822,9 @@ shared y-axis.
   <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part II article</a>.</li>
   <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
   for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
-  <li>Hussain, M. M., &amp; Mahmud, I. (2019). pyMannKendall: a python package for
-  non parametric Mann Kendall family of trend tests. <i>Journal of Open Source
-  Software</i>, 4(39), 1556.</li>
+  <li>Hussain, M. M., &amp; Mahmud, I. (2019). pyMannKendall: a python package
+  for non parametric Mann Kendall family of trend tests. <i>Journal of Open
+  Source Software</i>, 4(39), 1556.</li>
   <li>Local regression. (2026). In <i>Wikipedia</i>
   <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
   <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and
