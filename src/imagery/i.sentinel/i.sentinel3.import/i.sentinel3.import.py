@@ -939,7 +939,7 @@ def get_geocoding(
 
     :returns: bands, mask, resolution, and the range of rows that was read
     """
-    member = str(root / geo_bands_dict["nc_file"])
+    member = (root / geo_bands_dict["nc_file"]).as_posix()
     if member not in zip_file.namelist():
         gs.fatal(
             _("{s3_file} does not contain the geolocation file {nc_file}").format(
@@ -1683,7 +1683,7 @@ class S3Product:
         rows of the bands are read.
         """
         meta_information = {}
-        member = str(root / container_dict_items[0])
+        member = (root / container_dict_items[0]).as_posix()
         if member not in zip_file.namelist():
             for band_id in container_dict_items[1]:
                 self._report_missing_band(band_id, root, container_dict_items[0])
@@ -1854,12 +1854,12 @@ class S3Product:
         import_modules = {}
         meta_information = {}
         fmt = "%.12f,%.12f"
-        member = str(
+        member = (
             root
             / S3_SUN_PARAMETERS[self.product_type]["sun_bands"]["nc_file"].format(
                 self.view,
-            ),
-        )
+            )
+        ).as_posix()
         nc_file_path = zip_file.extract(member, path=TMP_FILE)
         with Dataset(nc_file_path) as sun_parameter_nc:
             file_metadata = get_file_metadata(sun_parameter_nc)
@@ -2069,7 +2069,7 @@ class S3Band:
         """
         if not self.solar_flux:
             return None
-        member = str(root_path / self.solar_flux["nc_file"])
+        member = (root_path / self.solar_flux["nc_file"]).as_posix()
         nc_file_path = zip_file.extract(member, path=TMP_FILE)
         with Dataset(nc_file_path) as sf_dataset:
             solar_flux = np.nanmean(sf_dataset[self.solar_flux["band"]][:])
