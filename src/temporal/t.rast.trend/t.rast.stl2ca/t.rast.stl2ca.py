@@ -293,7 +293,7 @@
 # % key: colormap
 # % type: string
 # % label: Category colormap
-# % description: Matplotlib colormap assigning each category its own color. Falls back to sampling the continuous 'viridis' colormap once there are more categories than the chosen colormap has distinct colors.
+# % description: Matplotlib colormap assigning each category its own color. Falls back to sampling the continuous 'viridis' colormap once there are more categories than the chosen colormap has distinct colors. The reserved value 'raster' instead colors each category from the 'raster' option's own GRASS color table (read via r.what.color); only valid with 'raster' (not 'map'), and a category value with no color rule falls back to black.
 # % answer: tab10
 # % required: no
 # % guisection: Plotting
@@ -459,14 +459,11 @@ if not callable(globals().get("_")):
     from gettext import gettext as _
 
 # extract.py/stats.py/plot.py/interactive.py: this module's own library
-# files (see the ETCFILES entry in the Makefile). trend.py is instead
-# shared with t.rast.stl via the trendlib library of the t.rast.trend
-# bundle both addons are installed under (see t.rast.trend/trendlib and
-# its own Makefile). Each library module leaves its own
-# numpy/pandas/matplotlib/statsmodels/scipy names as None at import time
-# (set below, by lazy_import_py_modules(), once GRASS has parsed the
-# command line) so a plain module scan (--help, g.extension) never needs
-# the scientific stack installed.
+# files Each library module leaves its own
+# numpy/pandas/matplotlib/statsmodels/scipy names as None at import
+# time (set below, by lazy_import_py_modules(), once GRASS has parsed
+# the command line) so a plain module scan (--help, g.extension) never
+# needs the scientific stack installed.
 #
 # Derive the path from the script's location. set_path() is a fallback
 # for any layout that assumption does not hold.
@@ -512,11 +509,8 @@ def cleanup():
     if clean_rasters:
         # vector_category_raster() can register a reclass raster alongside
         # the base map it was built from, and g.remove refuses to remove a
-        # base map while a reclass of it still exists -- regardless of the
-        # order the two names are given in one call. Two passes clear it:
-        # the first removes the reclass map(s), unblocking the base map(s)
-        # for the second (a g.remove of an already-removed name is a
-        # harmless no-op warning).
+        # base map while a reclass of it still exists. Therefore, first
+        # the reclass map is removed, then the basemap.
         for _ in range(2):
             gs.run_command(
                 "g.remove", flags="f", type="raster", name=clean_rasters, quiet=True
@@ -527,12 +521,11 @@ def lazy_import_py_modules(backend="WXAgg"):
     """Lazy import of the third-party scientific stack.
 
     Imports numpy/pandas/statsmodels/scipy/matplotlib once the command line
-    has been parsed, and hands each to the library module(s) that use it --
+    has been parsed, and hands each to the library module(s) that use it.
     extract.py/trend.py/stats.py/plot.py each leave the name as None at
     import time (see their module docstrings) until this runs. This is
     what keeps a plain module scan (--help, g.extension) from ever needing
-    the scientific stack installed, now that it lives across several
-    files instead of one.
+    the scientific stack installed.
 
     :param str backend: matplotlib backend to activate before importing pyplot
     """
@@ -594,7 +587,7 @@ def lazy_import_py_modules(backend="WXAgg"):
 
 def lazy_import_plotly():
     """Lazy import of Plotly, needed only for the '-i' (interactive HTML)
-    output mode -- kept separate from lazy_import_py_modules() so an
+    output mode - kept separate from lazy_import_py_modules() so an
     ordinary Matplotlib run never requires Plotly to be installed.
     """
     try:
@@ -627,6 +620,7 @@ def validate_options(options, flags, temporal_type):
       * statistic=percentile requires percentile_value
       * the -d (dispersion band) flag only applies to statistic=mean/median
       * min_pixels, when given, is a positive integer
+      * colormap=raster requires 'raster' (not 'map')
       * with -i, output (if given) ends in '.html'; warn about any
         Matplotlib-only option/flag that has nothing to do there
 
@@ -653,6 +647,14 @@ def validate_options(options, flags, temporal_type):
         )
     if options["min_pixels"] and int(options["min_pixels"]) < 1:
         gs.fatal(_("The 'min_pixels' option must be a positive integer."))
+
+    if options["colormap"] == "raster" and not options["raster"]:
+        gs.fatal(
+            _(
+                "'colormap=raster' requires the 'raster' option; 'map' has "
+                "no per-category color table to read."
+            )
+        )
 
     # Interactive (-i) HTML output: 'output' (if given) must be an .html
     # path, and the Matplotlib-only options/flags have nothing to do there.
@@ -743,11 +745,7 @@ def resolve_category_raster(options):
 
     # Shrink the computational region to the categories' own extent before
     # building the zone raster and sampling the strds (see
-    # shrink_region_to_raster()/shrink_region_to_vector() in extract.py):
-    # this only reduces how much v.to.rast/t.rast.univar have to sweep, it
-    # never changes a result. use_temp_region() is process-local and
-    # restores itself when the process exits, so the user's own region is
-    # never touched.
+    # shrink_region_to_raster()/shrink_region_to_vector() in extract.py).
     gs.use_temp_region()
 
     if raster:
@@ -837,7 +835,7 @@ def main(options, flags):
         lazy_import_plotly()
     apply_style(options["style"])
 
-    if colormap not in plot.plt.colormaps():
+    if colormap != "raster" and colormap not in plot.plt.colormaps():
         gs.fatal(_("'{}' is not a known Matplotlib colormap.").format(colormap))
 
     # Check if the strds exists and read its temporal type.
@@ -935,9 +933,9 @@ def main(options, flags):
             )
             if min_pixels is not None and ds_pixel_counts is not None:
                 # A spread computed from very few pixels is a poor estimate
-                # and can spike far past the genuine spread -- typically a
+                # and can spike far past the genuine spread - typically a
                 # near-total-cloud timestep where only a handful of pixels
-                # survive -- even though the mean/median itself looks normal.
+                # survive - even though the mean/median itself looks normal.
                 ds_count_series = build_series(
                     ds_dates, ds_pixel_counts, temporal_type=temporal_type
                 )
@@ -952,12 +950,10 @@ def main(options, flags):
                     )
                     ds_lower_series = ds_lower_series.mask(low_count_dates)
                     ds_upper_series = ds_upper_series.mask(low_count_dates)
-            # Always interpolated linearly, regardless of 'interpolation': a
-            # curvature-fitting method (quadratic, cubic, spline...) can
-            # overshoot past either neighbour when bridging a gap, which for
-            # a dispersion band means manufacturing a bulge wider than the
-            # genuine spread on either side. Linear is bounded by its two
-            # neighbours and cannot do that.
+            # Always interpolated linearly, regardless of 'interpolation'.
+            # Reason is that a curvature-fitting method (quadratic, cubic,
+            # spline...) can easily overshoot past either neighbour when
+            # bridging a gap.
             ds_band_lower = regularize(
                 series=ds_lower_series,
                 frequency=frequency,
@@ -1005,6 +1001,7 @@ def main(options, flags):
         )
         categories.append(
             {
+                "value": value,
                 "label": label,
                 "result": ds_result,
                 "trend_fit": ds_trend_fit,
@@ -1019,6 +1016,12 @@ def main(options, flags):
     if not categories:
         gs.fatal(_("No category had usable data; nothing to plot."))
 
+    colors = None
+    if colormap == "raster":
+        colors = plot.raster_category_colors(
+            zone_raster, [category["value"] for category in categories]
+        )
+
     # Plot: interactive HTML (-i) or the static Matplotlib figure
     # (save-by-extension or show).
     gs.message(_("Creating the figure..."))
@@ -1029,6 +1032,7 @@ def main(options, flags):
             temporal_type=temporal_type,
             plots=plots,
             colormap=colormap,
+            colors=colors,
             title=title,
             line_width=line_width,
             fontsize=fontsize,
@@ -1057,6 +1061,7 @@ def main(options, flags):
             title=title,
             plots=plots,
             colormap=colormap,
+            colors=colors,
             vlines=vlines,
         )
 

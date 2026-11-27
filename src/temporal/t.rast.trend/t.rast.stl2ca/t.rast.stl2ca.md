@@ -1,16 +1,16 @@
 ## DESCRIPTION
 
-t.rast.stl2ca extracts, for every **category** of a classification, the time
-series of a space-time raster dataset (STRDS), as the mean, median or other
-statistic of the pixels in that category. It then carries out a **STL
+t.rast.stl2ca extracts, for every **category** of a raster map or vector map,
+the time series of a space-time raster dataset (STRDS), as the mean, median or
+other statistic of the pixels in that category. It then carries out a **STL
 decomposition** (Seasonal-Trend decomposition using LOESS) on each category's
-series and draws every category together on one multi-panel plot comparing
-the observed series, *trend*, *seasonal* and *residual* (remainder)
-components. Optionally, a robust Theil-Sen trend regression can be fitted to
-each category's deseasonalized series and drawn on the trend panel.
+series and draws every category together on one multi-panel plot comparing the
+observed series, *trend*, *seasonal* and *residual* (remainder) components.
+Optionally, a robust Theil-Sen trend regression can be fitted to each category's
+deseasonalized series and drawn on the trend panel.
 
-The categories come from either a CELL raster's own cell values (**raster**), or
-a vector map's features grouped by an attribute column
+The categories can be defined by a categorical raster layer (**raster**), or a
+vector map's features grouped by an attribute column
 (**map**/**layer**/**column**). This can, for example, be a land-cover raster,
 or a vector of administrative units grouped by region name. t.rast.stl2ca
 complements *[t.rast.stl](t.rast.stl.md)*, which can instead compare two
@@ -112,9 +112,13 @@ Every category gets its own color, from **colormap** (a [Matplotlib
 colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html)
 name, default `tab10`). Once there are more categories than the chosen colormap
 has distinct colors, a continuous colormap (`viridis`) is used instead, sampled
-evenly across its range. The dispersion band (**-d**), seasonal envelope
-(**seasonal_envelope**) and Theil-Sen trend line (**-s**) are each drawn in the
-category's own color.
+evenly across its range. The reserved value `colormap=raster` instead colors
+each category from the **raster** option's own GRASS color table (e.g. one set
+with *r.colors*), so the plot reuses the same colors as the classification map
+itself. This only applies with **raster**, and a category value with no color
+rule in the table falls back to black. The dispersion band (**-d**), seasonal
+envelope (**seasonal_envelope**) and Theil-Sen trend line (**-s**) are each
+drawn in the category's own color.
 
 ### Interactive plot
 

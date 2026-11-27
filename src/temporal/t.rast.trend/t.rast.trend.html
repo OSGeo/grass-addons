@@ -4,22 +4,61 @@
 decomposition using LOESS) and trend analysis of a space-time raster dataset
 (STRDS):
 
-<ul>
-  <li><i><a href="t.rast.stl.md">t.rast.stl</a></i> decomposes and plots the
-  series at a single point, or the mean/median series over a zone or raster,
-  optionally with OLS, Theil-Sen and/or GAM trend lines.</li>
-  <li><i><a href="t.rast.stl2ca.md">t.rast.stl2ca</a></i> decomposes and
-  compares the series of every category of a classification (a CELL raster's own
-  cell values, or a vector map grouped by an attribute column) on one
-  multi-panel plot.</li>
-</ul>
+<h3>t.rast.stl</h3>
+
+The <i>t.rast.stl</i> tool decomposes and plots the time series of the values at
+a single point using STL. Optionally, one or more trend regressions can be
+fitted to the deseasonalized series and drawn on the trend panel, including an
+ordinary least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized
+Additive Model (GAM) curve, shape-constrained (monotone) by default.
+
+<p>
+<img src="t_rast_trend_01.png" alt="STL analysis output for a point.">
+
+<p>
+Alternatively, <i>t.rast.stl</i> can compute for each time step the mean/median
+of all pixels in an area defined by a vector or raster layer, and use those
+values as input for the STL analysis. In the figure below, this is done for the
+area A2.
+
+<p>
+<img src="t_rast_trend_02.png" alt="STL analysis output for an area.">
+
+<h3>t.rast.stl2ca</h3>
+
+<i>t.rast.stl2ca</i> extracts, for every <b>category</b> of a raster map or
+vector map, the time series of a space-time raster dataset (STRDS), as the mean,
+median or other statistic of the pixels in that category. It then carries out a
+STL analysis on each category's series and draws every category together on one
+multi-panel plot comparing the observed series, <i>trend</i>, <i>seasonal</i>
+and <i>residual</i> (remainder) components. Optionally, a robust Theil-Sen trend
+regression can be fitted to each category's deseasonalized series and drawn on
+the trend panel.
+
+<p>
+The categories can be defined by a categorical raster layer (<b>raster</b>), or
+a vector map's features grouped by an attribute column
+(<b>map</b>/<b>layer</b>/<b>column</b>). This can, for example, be a land-cover
+raster, or a vector of administrative units grouped by region name.
+
+<p>
+<img src="t_rast_trend_03.png" alt="STL analysis for three categories in a raster layer.">
+
+<p>
+By default, the tool uses the matplotlib library to create the plots.
+Alternatively, the plotly library can be used, which creates a webpage with an
+interactive plot, allowing you to select one or more categories, thus making it
+easier to compare trends in case there are many categories.
+
+<p>
+<img src="t_rast_trend_04.png" alt="STL analysis for three categories in a raster layer, plotted using plotly.">
 
 <h3>Acknowledgement</h3>
 
 This tool was developed for the
 <a href="https://savethetiger.nl/">Save the tiger! Save the Grasslands! Save the Water!</a>
 project, funded by the Dutch Research Council (NWO) under award
-https://doi.org/10.61686/UYHYF97856.
+&lt;https://doi.org/10.61686/UYHYF97856&gt;.
 
 <h2>Notes</h2>
 

@@ -339,6 +339,7 @@ def plot_interactive(
     temporal_type="absolute",
     plots=None,
     colormap="tab10",
+    colors=None,
     title=None,
     line_width=None,
     fontsize=None,
@@ -365,7 +366,10 @@ def plot_interactive(
     :param str|None output: output .html path, or None to open in a browser
     :param str temporal_type: 'absolute' or 'relative'
     :param list|None plots: which panels to draw (see plot.plot_result())
-    :param str colormap: Matplotlib colormap name (reused for the colors)
+    :param str colormap: Matplotlib colormap name (reused for the colors);
+        ignored when ``colors`` is given
+    :param list|None colors: one color per category, already resolved (see
+        plot.plot_result()). Takes precedence over ``colormap`` when given.
     :param str|None title: the plot title. Empty/None draws no title.
     :param line_width: series line width. Defaults to 2.
     :param fontsize: base font size. Defaults to Plotly's own default.
@@ -385,7 +389,8 @@ def plot_interactive(
     else:
         panels = all_panels
 
-    colors = category_colors(colormap, len(categories))
+    if colors is None:
+        colors = category_colors(colormap, len(categories))
     width = line_width or 2
     vertical_spacing = 0.3 / len(panels)
     date_axis_title = "Time step" if temporal_type == "relative" else "Date"

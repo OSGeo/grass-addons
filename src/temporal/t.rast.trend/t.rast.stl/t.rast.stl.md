@@ -2,13 +2,13 @@
 
 t.rast.stl extracts a time series from a space-time raster dataset (STRDS),
 either at a single user-selected point or as the mean or median value within a
-user-selected area. Next, it carries out a **STL decomposition** (Seasonal-Trend
-decomposition using LOESS) and produces a multi-panel plot of the observed
-series together with its *trend*, *seasonal* and *residual* (remainder)
-components. Optionally, one or more trend regressions can be fitted to the
-deseasonalized series and drawn on the trend panel, including an ordinary
-least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized
-Additive Model (GAM) curve, shape-constrained (monotone) by default.
+user-selected area. Next, it carries out a **STL** (Seasonal-Trend decomposition
+using LOESS) analysis and produces a multi-panel plot of the observed series
+together with its *trend*, *seasonal* and *residual* (remainder) components.
+Optionally, one or more trend regressions can be fitted to the deseasonalized
+series and drawn on the trend panel, including an ordinary least-squares (OLS)
+line, a robust Theil-Sen line, and/or a Generalized Additive Model (GAM) curve,
+shape-constrained (monotone) by default.
 
 The module accepts strds with absolute (calendar-dated) or relative
 (integer-stepped) time. For a point (**coordinates**) it samples the pixel value
@@ -463,7 +463,7 @@ The examples use the North Carolina mapset with climatic data time series
 
 The following is borrowed from the
 [NSCU-Geoforall](https://ncsu-geoforall-lab.github.io/grass-temporal-workshop/)
-tutorial. We create temporal datasets which serve as containers for the time
+tutorial. We create temporal datasets, which serve as containers for the time
 series. First step is to create empty datasets of type strds (space-time raster
 dataset). Note, that we use absolute time.
 

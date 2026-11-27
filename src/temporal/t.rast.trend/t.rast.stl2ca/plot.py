@@ -129,6 +129,47 @@ def category_colors(colormap, n):
     return [fallback(i / max(n - 1, 1)) for i in range(n)]
 
 
+def raster_category_colors(raster, values):
+    """Look up each category's color in the categories raster's own GRASS
+    color table (colormap='raster').
+
+    One r.what.color call looks up every value at once rather than one
+    process per category. Its output is "<value>: <R>:<G>:<B>" per line, or
+    "<value>: *" for a value the color table has no rule for (e.g. one
+    outside the range a continuous table was built over).
+
+    :param str raster: name of the categories raster (mapset-qualified)
+    :param list values: category values (int), in the order colors should
+        be returned
+    :return list: one (r, g, b) tuple per value, floats in [0, 1]; a value
+        with no color rule falls back to black, with a warning
+    """
+    output = gs.read_command(
+        "r.what.color",
+        input=raster,
+        value=",".join(str(value) for value in values),
+        quiet=True,
+    )
+    rgb_by_value = {}
+    for line in output.splitlines():
+        value_str, _sep, rgb = line.partition(": ")
+        rgb_by_value[value_str.strip()] = rgb.strip()
+
+    colors = []
+    for value in values:
+        rgb = rgb_by_value.get(str(value))
+        if not rgb or rgb == "*":
+            gs.warning(
+                _(
+                    "Category '{v}' has no color rule in raster '{r}'; using black."
+                ).format(v=value, r=raster)
+            )
+            colors.append((0.0, 0.0, 0.0))
+            continue
+        colors.append(tuple(int(c) / 255 for c in rgb.split(":")))
+    return colors
+
+
 def draw_sen_line(ax, comp, trend_fit, trend_fit_segments, color):
     """Draw the Theil-Sen trend line(s) for one category, in its own color.
 
@@ -175,6 +216,7 @@ def plot_result(
     title=None,
     plots=None,
     colormap="tab10",
+    colors=None,
     vlines=None,
 ):
     """Build the multi-panel STL plot, in the style of R's plot(stl(...)),
@@ -209,7 +251,11 @@ def plot_result(
     :param list|None plots: which panels to draw, as a subset of 'observed',
         'trend', 'seasonal' and 'residual'. None (or all four) draws the
         full four-panel figure.
-    :param str colormap: Matplotlib colormap name
+    :param str colormap: Matplotlib colormap name; ignored when ``colors``
+        is given
+    :param list|None colors: one color per category, already resolved (e.g.
+        by raster_category_colors(), for colormap='raster'). Takes
+        precedence over ``colormap`` when given.
     :param list|None vlines: (position, label|None) pairs, position being a
         pandas.Timestamp (absolute time) or int (relative time), drawn as a
         dashed vertical reference line on every panel.
@@ -230,7 +276,8 @@ def plot_result(
     else:
         panels = all_panels
 
-    colors = category_colors(colormap, len(categories))
+    if colors is None:
+        colors = category_colors(colormap, len(categories))
 
     # squeeze=False keeps 'axes' 2-D so a single-panel figure indexes the same
     # way as a multi-panel one.

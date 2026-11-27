@@ -2,9 +2,9 @@
 
 t.rast.stl extracts a time series from a space-time raster dataset (STRDS),
 either at a single user-selected point or as the mean or median value within a
-user-selected area. Next, it carries out a <b>STL decomposition</b>
-(Seasonal-Trend decomposition using LOESS) and produces a multi-panel plot of
-the observed series together with its <i>trend</i>, <i>seasonal</i> and
+user-selected area. Next, it carries out a <b>STL</b> (Seasonal-Trend
+decomposition using LOESS) analysis and produces a multi-panel plot of the
+observed series together with its <i>trend</i>, <i>seasonal</i> and
 <i>residual</i> (remainder) components. Optionally, one or more trend
 regressions can be fitted to the deseasonalized series and drawn on the trend
 panel, including an ordinary least-squares (OLS) line, a robust Theil-Sen line,
@@ -487,7 +487,7 @@ faster to run.
 This tool was developed for the
 <a href="https://savethetiger.nl/">Save the tiger! Save the Grasslands! Save the Water!</a>
 project, funded by the Dutch Research Council (NWO) under award
-https://doi.org/10.61686/UYHYF97856.
+&lt;https://doi.org/10.61686/UYHYF97856&gt;.
 
 <h2>NOTES</h2>
 
@@ -538,7 +538,7 @@ The examples use the North Carolina mapset with climatic data time series
 
 The following is borrowed from the
 <a href="https://ncsu-geoforall-lab.github.io/grass-temporal-workshop/">NSCU-Geoforall</a>
-tutorial. We create temporal datasets which serve as containers for the time
+tutorial. We create temporal datasets, which serve as containers for the time
 series. First step is to create empty datasets of type strds (space-time raster
 dataset). Note, that we use absolute time.
 
