@@ -296,9 +296,21 @@
 # % key: slope_unit
 # % type: string
 # % label: Reporting unit for trend slopes
-# % description: Time unit the reported OLS/Theil-Sen slopes and the GAM net change are expressed per (value change per unit). 'auto' picks a readable calendar unit (day/week/month/year) from the series span for absolute-time data; 'step' keeps the value change per observation step (per frequency/step). For relative-time data only 'auto' and 'step' apply.
+# % description: Time unit the reported OLS/Theil-Sen slopes are expressed per (value change per unit). 'auto' picks the largest of day/week/month/year that the series spans at least three times; 'step' keeps the value change per observation step (per frequency/step). For relative-time data, the calendar units apply only when the dataset's time unit is days, weeks, months or years; otherwise slopes are reported per step. The GAM net change is a total change over the fitted span and is not affected.
 # % options: auto,step,day,week,month,year
 # % answer: auto
+# % required: no
+# % guisection: Trend line
+# %end
+
+# %option
+# % key: mk_test
+# % type: string
+# % label: Mann-Kendall test variant
+# % description: Test used for the monotonic-trend p-value reported with the Theil-Sen slope. All options except 'kendall' correct for serial autocorrelation and require the 'pymannkendall' package.
+# % options: kendall,hamed_rao,yue_wang,prewhiten
+# % descriptions: kendall;Kendall rank correlation (SciPy), no autocorrelation correction;hamed_rao;Hamed-Rao variance correction;yue_wang;Yue-Wang variance correction;prewhiten;Pre-whitening
+# % answer: kendall
 # % required: no
 # % guisection: Trend line
 # %end
@@ -577,6 +589,7 @@ from extract import (  # noqa: E402
 )
 from trendlib.trend import (  # noqa: E402
     decompose_and_fit,
+    require_pymannkendall,
     write_csv,
     write_point_vector,
     validate_odd_window,
@@ -681,7 +694,8 @@ def validate_options(options, flags, temporal_type):
     Data-dependent checks (period vs. length, gaps after interpolation, etc.)
     are intentionally left to run later, once the series is available.
 
-    :param dict options: parsed module options
+    :param dict options: parsed module options (mk_test other than 'kendall'
+        triggers an up-front pymannkendall availability check)
     :param dict flags: parsed module flags (the 'g' flag triggers an up-front
         pygam availability check)
     :param str temporal_type: 'absolute' or 'relative' (from t.info)
@@ -799,6 +813,8 @@ def validate_options(options, flags, temporal_type):
                 )
             )
 
+    require_pymannkendall(options["mk_test"])
+
 
 def main(options, flags):
     """Extract a point series from an strds and run an STL decomposition."""
@@ -834,6 +850,7 @@ def main(options, flags):
     breakpoints_opt = options["breakpoints"]
     gam_direction = options["gam_direction"]
     slope_unit = options["slope_unit"]
+    mk_test = options["mk_test"]
     csv = options["csv"]
     vector = options["vector"]
     plot_dimensions = options["plot_dimensions"]
@@ -1136,6 +1153,7 @@ def main(options, flags):
             label=label,
             envelope_percentile=envelope_percentile,
             breakpoints_opt=breakpoints_opt,
+            mk_test=mk_test,
         )
         results.append((ds_result, ds_trend_fit, ds_trend_fit_segments))
         envelopes.append((ds_envelope_lower, ds_envelope_upper))

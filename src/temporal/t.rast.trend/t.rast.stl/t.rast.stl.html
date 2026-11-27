@@ -324,9 +324,11 @@ line (SciPy's
 reported with its slope and a monotonic-trend <i>p</i>-value from Kendall's
 rank-correlation test (SciPy's
 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
-Note that this differs from a full Mann-Kendall test, which applies tie and
-variance corrections. The reported <i>p</i>-values may therefore differ slightly
-when the data contain ties. Note that the Theil-Sen slope with the
+This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
+apply the continuity correction, so the <i>p</i>-values may differ slightly from
+those of other Mann-Kendall implementations. The <b>mk_test</b> option offers
+variants that correct for serial autocorrelation (see the note on significance
+below). Note that the Theil-Sen slope with the
 non-parametric Kendall test is more resistant to outliers and does not assume
 normal residuals.
 
@@ -363,14 +365,33 @@ is per day; for a 16-day composite (16D) it is per 16-day step, for a monthly
 (MS) series per month, and so on.
 
 <p>
-<b>A note on significance.</b> The reported <i>p</i>-values (both the OLS slope
-test and the Kendall test behind Theil-Sen) assume independent residuals.
-Deseasonalized environmental series are almost always serially autocorrelated,
-which inflates significance (<i>p</i>-values come out too small). The values
-here therefore do <b>not</b> account for serial autocorrelation. So, for a
-formal inference, you should consider a trend-free pre-whitening of the series,
-or a variance correction such as the Hamed–Rao modification of the Mann-Kendall
-test.
+<b>A note on significance.</b> By default, the reported <i>p</i>-values (both
+the OLS slope test and the Kendall test behind Theil-Sen) assume independent
+residuals. Deseasonalized environmental series are almost always serially
+autocorrelated, which inflates significance (<i>p</i>-values come out too
+small). For the Mann-Kendall <i>p</i>-value, the <b>mk_test</b> option selects
+a variant that accounts for this, computed with the
+<a href="https://github.com/mmhs013/pyMannKendall">pymannkendall</a> package:
+
+<ul>
+  <li><tt>kendall</tt> (default): Kendall's rank correlation test (SciPy), no
+  correction for autocorrelation;</li>
+  <li><tt>hamed_rao</tt>: the Hamed–Rao modified test, which inflates the
+  variance of the test statistic based on the significant autocorrelation lags
+  of the ranks of the detrended series;</li>
+  <li><tt>yue_wang</tt>: the Yue–Wang modified test, a similar variance
+  correction based on the autocorrelation of the detrended series;</li>
+  <li><tt>prewhiten</tt>: the test applied to the pre-whitened series, i.e.,
+  with the lag-1 autocorrelation removed.</li>
+</ul>
+
+<p>
+The variants only change the Mann-Kendall tau and <i>p</i>-value; the
+Theil-Sen slope is the same. For these variants, tau is pymannkendall's
+estimate (the Mann-Kendall <i>S</i> statistic divided by the number of pairs),
+which for the pre-whitening variant is computed on the pre-whitened series. It
+can therefore differ from the default tau. The OLS <i>p</i>-value is never
+corrected for autocorrelation.
 
 <p>
 The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
@@ -462,8 +483,9 @@ seasonal amplitude envelope is included as
 <p>
 The <b>vector</b> option creates a point vector layer carrying the trend
 regression results (OLS slope, R², <i>p</i>-value, Theil-Sen slope, Mann-Kendall
-tau and <i>p</i>-value) as attributes. When a GAM was fitted (<b>-g</b>), its
-net change and explained deviance are stored as well. With <b>coordinates</b>
+tau and <i>p</i>-value, and the <b>mk_test</b> variant used) as attributes.
+When a GAM was fitted (<b>-g</b>), its net change and explained deviance are
+stored as well. With <b>coordinates</b>
 the point is at the selected location; with <b>zone</b> or <b>raster</b> it is
 placed at the center of the zone's or raster's bounding box (a tag for the
 location, not a geometry derived from the area itself).
@@ -509,6 +531,8 @@ This addon requires the following Python packages:
   <li><b>pygam</b> fits the optional GAM curve, by default shape-constrained
   (monotone)
   (<a href="https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html">LinearGAM</a>).</li>
+  <li><b>pymannkendall</b> computes the optional autocorrelation-corrected
+  Mann-Kendall tests selected with <b>mk_test</b>.</li>
   <li><b>numpy</b> provides the array operations underlying the above, and
   <b>matplotlib</b> renders the multi-panel plot.</li>
 </ul>
@@ -524,9 +548,11 @@ pip install numpy pandas scipy matplotlib statsmodels
 
 <p>
 If a dependency is missing the module exits with a message indicating which
-package to install. Exception is <i>pygam</i>, which is an optional dependency
-(<tt>pip install pygam</tt>). It is imported only when <b>-g</b> is used, so the
-rest of the module works without it.
+package to install. Exceptions are <i>pygam</i> and <i>pymannkendall</i>, which
+are optional dependencies (<tt>pip install pygam pymannkendall</tt>).
+<i>pygam</i> is imported only when <b>-g</b> is used, and <i>pymannkendall</i>
+only when <b>mk_test</b> is set to another value than <tt>kendall</tt>, so the
+rest of the module works without them.
 
 <h2>EXAMPLES</h2>
 
@@ -670,8 +696,8 @@ Resulting image:
 <p>
 The trend regressions, including the GAM, are fitted on the deseasonalized
 series (<tt>trend + residual</tt>), so the confidence band reflects the genuine
-short-term scatter. Keep in mind that the reported <i>p</i>-values do not
-account for serial autocorrelation (see the trend regression section above).
+short-term scatter. Keep in mind that, by default, the reported <i>p</i>-values
+do not account for serial autocorrelation (see the note on significance above).
 
 <p>
 When the trajectory is not expected to be one-directional, set
@@ -802,6 +828,9 @@ shared y-axis.
   <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part II article</a>.</li>
   <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
   for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
+  <li>Hussain, M. M., &amp; Mahmud, I. (2019). pyMannKendall: a python package for
+  non parametric Mann Kendall family of trend tests. <i>Journal of Open Source
+  Software</i>, 4(39), 1556.</li>
   <li>Local regression. (2026). In <i>Wikipedia</i>
   <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
   <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and
@@ -818,6 +847,9 @@ shared y-axis.
   J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0:
   Fundamental algorithms for scientific computing in Python. Nature Methods,
   17(3), 261–272. &lt;https://doi.org/10.1038/s41592-019-0686-2&gt;</li>
+  <li>Yue, S., &amp; Wang, C. Y. (2004). The Mann-Kendall test modified by
+  effective sample size to detect trend in serially correlated hydrological
+  series. <i>Water Resources Management</i>, 18(3), 201–218.</li>
 </ul>
 
 <h2>AUTHOR</h2>

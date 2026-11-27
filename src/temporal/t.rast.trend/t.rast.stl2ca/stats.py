@@ -45,7 +45,7 @@ def trend_stats_rows(categories):
         'trend_fit_segments' (list of (fit dict, segment label) pairs, or
         None), i.e. the same per-category dicts plot.plot_result() takes.
     :return list: dicts with keys category/segment/n_obs/unit/sen_slope/
-        mk_tau/mk_pvalue
+        mk_tau/mk_pvalue/mk_test
     """
     rows = []
     for category in categories:
@@ -100,4 +100,5 @@ def _trend_stats_row(label, segment, fit):
         "sen_slope": fit["sen_slope_report"],
         "mk_tau": fit["mk_tau"],
         "mk_pvalue": fit["mk_pvalue"],
+        "mk_test": fit["mk_test"],
     }

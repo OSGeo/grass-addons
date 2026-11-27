@@ -258,30 +258,44 @@ each category by fitting a robust Theil-Sen regression (SciPy's
 to its **deseasonalized observed** series (`trend + residual`, equivalently
 `observed - seasonal`), reported with its slope and a monotonic-trend *p*-value
 from Kendall's rank-correlation test (SciPy's
-[kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html);
-note that this differs from a full Mann-Kendall test, which applies tie and
-variance corrections, so the reported *p*-values may differ slightly when the
-data contain ties).
+[kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
+This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
+apply the continuity correction, so the *p*-values may differ slightly from
+those of other Mann-Kendall implementations.
+
+The **mk_test** option offers variants that correct for serial autocorrelation,
+computed with the [pymannkendall](https://github.com/mmhs013/pyMannKendall)
+package:
+
+- `kendall` (default): Kendall's rank correlation test (SciPy), no correction
+  for autocorrelation;
+- `hamed_rao`: the Hamed–Rao modified test, which inflates the variance of the
+  test statistic based on the significant autocorrelation lags of the ranks of
+  the detrended series;
+- `yue_wang`: the Yue–Wang modified test, a similar variance correction based on
+  the autocorrelation of the detrended series;
+- `prewhiten`: the test applied to the pre-whitened series, i.e., with the
+  lag-1 autocorrelation removed.
+
+The variants only change the Mann-Kendall tau and *p*-value; the Theil-Sen slope
+is the same. For these variants, tau is pymannkendall's estimate (the
+Mann-Kendall *S* statistic divided by the number of pairs), which for the
+pre-whitening variant is computed on the pre-whitened series. It can therefore
+differ from the default tau.
 
 The **-s** flag draws the Theil-Sen line on the trend panel; **stats_output**
 writes its numbers (slope, Kendall's tau, p-value) to a CSV file, one row per
 category, regardless of **-s**.
 
-The slopes are expressed per observation of the regularized series, i.e., per
-step of the chosen **frequency** (absolute series) or **step** (relative
-series). For a daily (D) series this is per day; for a 16-day composite (16D)
-it is per 16-day step, for a monthly (MS) series per month, and so on. Use
-**slope_unit** to express them per a different, readable calendar unit
-instead (day/week/month/year), or `auto` (the default) to pick one from the
-series span.
-
-**A note on significance.** The reported *p*-value (the Kendall test behind
-Theil-Sen) assumes independent residuals. Deseasonalized
-environmental series are almost always serially autocorrelated, which inflates
-significance (*p*-values come out too small). The values here therefore do
-**not** account for serial autocorrelation. So, for a formal inference, you
-should consider a trend-free pre-whitening of the series, or a variance
-correction such as the Hamed–Rao modification of the Mann-Kendall test.
+The slopes are reported as a change per time unit, set with **slope_unit**. The
+default, `auto`, picks the largest of day, week, month and year that the series
+spans at least three times, so a multi-year series is reported per year. Set
+`day`, `week`, `month` or `year` to choose the unit yourself, or `step` to
+report the change per observation of the regularized series, i.e., per step of
+the chosen **frequency** (absolute series) or **step** (relative series), e.g.,
+per 16-day step for a 16D series. For a relative-time series, the calendar units
+are only available when its time unit is days, weeks, months or years; otherwise
+the slopes are reported per step.
 
 The STL trend LOESS has to **extrapolate** at both ends of the series because,
 near the boundaries, it can only use data from one side. The corresponding ends
@@ -353,7 +367,8 @@ interactive window) when no output file is given. Override it only if your
 system needs a different interactive backend (e.g., `TkAgg`, `Qt5Agg`).
 
 **stats_output**, when given, writes the Theil-Sen/Kendall trend statistics
-(slope, tau, p-value, the reporting unit, number of observations fitted) to a
+(slope, tau, p-value, the **mk_test** variant, the reporting unit, number of
+observations fitted) to a
 CSV file, one row per category, and one row per **breakpoints** segment, when
 given, in addition to the whole-series row. This is independent of **-s**: the
 statistics are computed either way, this option just decides whether they are
@@ -397,6 +412,8 @@ This addon requires the following Python packages:
   ([scipy.stats.theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html)),
   and the monotonic-trend *p*-value from Kendall's rank correlation
   ([scipy.stats.kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
+- **pymannkendall** computes the optional autocorrelation-corrected
+  Mann-Kendall tests selected with **mk_test** ([pymannkendall](https://github.com/mmhs013/pymannkendall)).
 - **numpy** provides the array operations underlying the above, and
   **matplotlib** renders the multi-panel plot.
 
@@ -407,7 +424,10 @@ pip install numpy pandas scipy matplotlib statsmodels
 ```
 
 If a dependency is missing, the module exits with a message indicating which
-package to install.
+package to install. Exception is *pymannkendall*, which is an optional
+dependency (`pip install pymannkendall`). It is imported only when **mk_test**
+is set to another value than `kendall`, so the rest of the module works without
+it.
 
 ## EXAMPLES
 
@@ -434,6 +454,9 @@ TODO
   [Part II article](https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/).
 - Hamed, K. H., & Rao, A. R. (1998). A modified Mann-Kendall trend test for
   autocorrelated data. *Journal of Hydrology*, 204(1–4), 182–196.
+- Hussain et al., (2019). pyMannKendall: a python package for non parametric
+  Mann Kendall family of trend tests.. Journal of Open Source Software, 4(39),
+  1556, https://doi.org/10.21105/joss.01556
 - Local regression. (2026). In *Wikipedia*
   [Wikipedia local regression article](https://en.wikipedia.org/wiki/Local_regression).
 - Seabold, S., & Perktold, J. (2010). Statsmodels: Econometric and Statistical
@@ -447,6 +470,9 @@ TODO
   (2020). SciPy 1.0: Fundamental algorithms for scientific computing in
   Python. Nature Methods, 17(3), 261–272.
   <https://doi.org/10.1038/s41592-019-0686-2>
+- Yue, S., & Wang, C. Y. (2004). The Mann-Kendall test modified by effective
+  sample size to detect trend in serially correlated hydrological series.
+  *Water Resources Management*, 18(3), 201–218.
 
 ## AUTHOR
 

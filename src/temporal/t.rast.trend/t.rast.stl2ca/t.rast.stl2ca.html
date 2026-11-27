@@ -297,10 +297,12 @@ each category by fitting a robust Theil-Sen regression (SciPy's
 to its <b>deseasonalized observed</b> series (<tt>trend + residual</tt>,
 equivalently <tt>observed - seasonal</tt>), reported with its slope and a
 monotonic-trend <i>p</i>-value from Kendall's rank-correlation test (SciPy's
-<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>;
-note that this differs from a full Mann-Kendall test, which applies tie and
-variance corrections, so the reported <i>p</i>-values may differ slightly when
-the data contain ties).
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
+This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
+apply the continuity correction, so the <i>p</i>-values may differ slightly from
+those of other Mann-Kendall implementations. The <b>mk_test</b> option offers
+variants that correct for serial autocorrelation (see the note on significance
+below).
 
 <p>
 The <b>-s</b> flag draws the Theil-Sen line on the trend panel;
@@ -317,13 +319,31 @@ instead (day/week/month/year), or <tt>auto</tt> (the default) to pick one from
 the series span.
 
 <p>
-<b>A note on significance.</b> The reported <i>p</i>-value (the Kendall test
-behind Theil-Sen) assumes independent residuals. Deseasonalized environmental
-series are almost always serially autocorrelated, which inflates significance
-(<i>p</i>-values come out too small). The values here therefore do <b>not</b>
-account for serial autocorrelation. So, for a formal inference, you should
-consider a trend-free pre-whitening of the series, or a variance correction such
-as the Hamed–Rao modification of the Mann-Kendall test.
+<b>A note on significance.</b> By default, the reported <i>p</i>-value (the
+Kendall test behind Theil-Sen) assumes independent residuals. Deseasonalized
+environmental series are almost always serially autocorrelated, which inflates
+significance (<i>p</i>-values come out too small). The <b>mk_test</b> option
+selects a Mann-Kendall variant that accounts for this, computed with the
+<a href="https://github.com/mmhs013/pyMannKendall">pymannkendall</a> package:
+
+<ul>
+  <li><tt>kendall</tt> (default): Kendall's rank correlation test (SciPy), no
+  correction for autocorrelation;</li>
+  <li><tt>hamed_rao</tt>: the Hamed–Rao modified test, which inflates the
+  variance of the test statistic based on the significant autocorrelation lags
+  of the ranks of the detrended series;</li>
+  <li><tt>yue_wang</tt>: the Yue–Wang modified test, a similar variance
+  correction based on the autocorrelation of the detrended series;</li>
+  <li><tt>prewhiten</tt>: the test applied to the pre-whitened series, i.e.,
+  with the lag-1 autocorrelation removed.</li>
+</ul>
+
+<p>
+The variants only change the Mann-Kendall tau and <i>p</i>-value; the
+Theil-Sen slope is the same. For these variants, tau is pymannkendall's
+estimate (the Mann-Kendall <i>S</i> statistic divided by the number of pairs),
+which for the pre-whitening variant is computed on the pre-whitened series. It
+can therefore differ from the default tau.
 
 <p>
 The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
@@ -406,8 +426,8 @@ only if your system needs a different interactive backend (e.g., <tt>TkAgg</tt>,
 
 <p>
 <b>stats_output</b>, when given, writes the Theil-Sen/Kendall trend statistics
-(slope, tau, p-value, the reporting unit, number of observations fitted) to a
-CSV file, one row per category, and one row per <b>breakpoints</b> segment, when
+(slope, tau, p-value, the <b>mk_test</b> variant, the reporting unit, number of
+observations fitted) to a CSV file, one row per category, and one row per <b>breakpoints</b> segment, when
 given, in addition to the whole-series row. This is independent of <b>-s</b>:
 the statistics are computed either way, this option just decides whether they
 are written out. With <b>-i</b>, the same table is also always shown in the HTML
@@ -454,6 +474,8 @@ This addon requires the following Python packages:
   (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>),
   and the monotonic-trend <i>p</i>-value from Kendall's rank correlation
   (<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
+  <li><b>pymannkendall</b> computes the optional autocorrelation-corrected
+  Mann-Kendall tests selected with <b>mk_test</b>.</li>
   <li><b>numpy</b> provides the array operations underlying the above, and
   <b>matplotlib</b> renders the multi-panel plot.</li>
 </ul>
@@ -469,7 +491,10 @@ pip install numpy pandas scipy matplotlib statsmodels
 
 <p>
 If a dependency is missing, the module exits with a message indicating which
-package to install.
+package to install. Exception is <i>pymannkendall</i>, which is an optional
+dependency (<tt>pip install pymannkendall</tt>). It is imported only when
+<b>mk_test</b> is set to another value than <tt>kendall</tt>, so the rest of
+the module works without it.
 
 <h2>EXAMPLES</h2>
 
@@ -498,6 +523,9 @@ TODO
   <a href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part II article</a>.</li>
   <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
   for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
+  <li>Hussain, M. M., &amp; Mahmud, I. (2019). pyMannKendall: a python package for
+  non parametric Mann Kendall family of trend tests. <i>Journal of Open Source
+  Software</i>, 4(39), 1556.</li>
   <li>Local regression. (2026). In <i>Wikipedia</i>
   <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
   <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and
@@ -511,6 +539,9 @@ TODO
   J., Jones, E., Kern, R., Larson, E., … Vázquez-Baeza, Y. (2020). SciPy 1.0:
   Fundamental algorithms for scientific computing in Python. Nature Methods,
   17(3), 261–272. &lt;https://doi.org/10.1038/s41592-019-0686-2&gt;</li>
+  <li>Yue, S., &amp; Wang, C. Y. (2004). The Mann-Kendall test modified by
+  effective sample size to detect trend in serially correlated hydrological
+  series. <i>Water Resources Management</i>, 18(3), 201–218.</li>
 </ul>
 
 <h2>AUTHOR</h2>

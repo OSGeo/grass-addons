@@ -220,6 +220,7 @@ _STATS_TABLE_COLUMNS = [
     ("sen_slope", "Sen slope"),
     ("mk_tau", "MK tau"),
     ("mk_pvalue", "MK p"),
+    ("mk_test", "MK test"),
 ]
 
 

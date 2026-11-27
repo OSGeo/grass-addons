@@ -249,9 +249,21 @@
 # % key: slope_unit
 # % type: string
 # % label: Reporting unit for trend slopes
-# % description: Time unit the slopes reported in 'stats_output' are expressed per (value change per unit). 'auto' picks a readable calendar unit (day/week/month/year) from the series span for absolute-time data; 'step' keeps the value change per observation step (per frequency/step). For relative-time data only 'auto' and 'step' apply.
+# % description: Time unit the slopes reported in 'stats_output' are expressed per (value change per unit). 'auto' picks the largest of day/week/month/year that the series spans at least three times; 'step' keeps the value change per observation step (per frequency/step). For relative-time data, the calendar units apply only when the dataset's time unit is days, weeks, months or years; otherwise slopes are reported per step.
 # % options: auto,step,day,week,month,year
 # % answer: auto
+# % required: no
+# % guisection: Trend line
+# %end
+
+# %option
+# % key: mk_test
+# % type: string
+# % label: Mann-Kendall test variant
+# % description: Test used for the monotonic-trend p-value reported with the Theil-Sen slope in 'stats_output'. All options except 'kendall' correct for serial autocorrelation and require the 'pymannkendall' package.
+# % options: kendall,hamed_rao,yue_wang,prewhiten
+# % descriptions: kendall;Kendall rank correlation (SciPy), no autocorrelation correction;hamed_rao;Hamed-Rao variance correction;yue_wang;Yue-Wang variance correction;prewhiten;Pre-whitening
+# % answer: kendall
 # % required: no
 # % guisection: Trend line
 # %end
@@ -496,7 +508,11 @@ from extract import (  # noqa: E402
     build_series,
     regularize,
 )
-from trendlib.trend import decompose_and_fit, validate_odd_window  # noqa: E402
+from trendlib.trend import (  # noqa: E402
+    decompose_and_fit,
+    require_pymannkendall,
+    validate_odd_window,
+)
 from stats import write_trend_stats_csv  # noqa: E402
 from plot import apply_style, plot_result, parse_vlines  # noqa: E402
 from interactive import plot_interactive  # noqa: E402
@@ -623,6 +639,7 @@ def validate_options(options, flags, temporal_type):
       * colormap=raster requires 'raster' (not 'map')
       * with -i, output (if given) ends in '.html'; warn about any
         Matplotlib-only option/flag that has nothing to do there
+      * mk_test other than 'kendall' has pymannkendall installed
 
     Data-dependent checks (period vs. length, gaps after interpolation, etc.)
     are intentionally left to run later, once the series is available.
@@ -730,6 +747,8 @@ def validate_options(options, flags, temporal_type):
                 ).format(v=options["frequency"])
             )
 
+    require_pymannkendall(options["mk_test"])
+
 
 def resolve_category_raster(options):
     """Resolve the raster=/map=+layer=+column= option group into a
@@ -804,6 +823,7 @@ def main(options, flags):
     trend_trim = options["trend_trim"]
     breakpoints_opt = options["breakpoints"]
     slope_unit = options["slope_unit"]
+    mk_test = options["mk_test"]
     plot_dimensions = options["plot_dimensions"]
     plots = [p for p in options["plots"].split(",") if p] if options["plots"] else []
     dpi = float(options["dpi"]) if options["dpi"] else 300
@@ -998,6 +1018,7 @@ def main(options, flags):
             label=label,
             envelope_percentile=envelope_percentile,
             breakpoints_opt=breakpoints_opt,
+            mk_test=mk_test,
         )
         categories.append(
             {

@@ -25,7 +25,7 @@ import os
 
 import grass.script as gs
 
-from trendlib.trend import format_slope
+from trendlib.trend import MK_TESTS, format_slope
 
 if not callable(globals().get("_")):
     from gettext import gettext as _
@@ -248,11 +248,14 @@ def draw_trend_lines(
     if show_sen and "sen_slope" in trend_fit:
         sen = trend_fit["sen_slope"] * x + trend_fit["sen_intercept"]
         if with_stats:
-            lbl = "Theil-Sen (slope = {}, MK p = {:.3f}){}".format(
+            mk_test = trend_fit["mk_test"]
+            mk_abbr = "MK" if mk_test == "kendall" else MK_TESTS[mk_test][1] + " MK"
+            lbl = "Theil-Sen (slope = {}, {} p = {:.3f}){}".format(
                 format_slope(
                     trend_fit.get("sen_slope_report", trend_fit["sen_slope"]),
                     trend_fit.get("unit_label"),
                 ),
+                mk_abbr,
                 trend_fit["mk_pvalue"],
                 label_suffix,
             )

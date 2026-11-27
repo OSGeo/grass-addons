@@ -24,6 +24,8 @@ rather than imported here, so a plain module scan (--help, g.extension)
 never needs numpy/pandas/statsmodels/scipy installed.
 """
 
+import importlib.util
+
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
@@ -638,6 +640,74 @@ def fit_gam(xm, ym, direction, sen_slope):
     }
 
 
+# mk_test option value -> (pymannkendall function, label used in reports).
+# The default, 'kendall', is SciPy's kendalltau and is not listed here.
+MK_TESTS = {
+    "hamed_rao": ("hamed_rao_modification_test", "Hamed-Rao"),
+    "yue_wang": ("yue_wang_modification_test", "Yue-Wang"),
+    "prewhiten": ("pre_whitening_modification_test", "pre-whitened"),
+}
+
+
+def require_pymannkendall(mk_test):
+    """Fail early if the mk_test= variant needs pymannkendall and it is missing.
+
+    :param str mk_test: the mk_test= option value
+    """
+    if mk_test != "kendall" and importlib.util.find_spec("pymannkendall") is None:
+        gs.fatal(
+            _(
+                "The Python package 'pymannkendall' is required for "
+                "mk_test={t} but is not installed. Install it with e.g. "
+                "'pip install pymannkendall', or use mk_test=kendall."
+            ).format(t=mk_test)
+        )
+
+
+def mk_name(mk_test):
+    """Name of the Mann-Kendall test variant used in terminal reports.
+
+    :param str mk_test: the mk_test= option value
+    :return str: 'Mann-Kendall', or e.g. 'Mann-Kendall, Hamed-Rao'
+    """
+    if mk_test == "kendall":
+        return "Mann-Kendall"
+    return "Mann-Kendall, {}".format(MK_TESTS[mk_test][1])
+
+
+def mann_kendall(y, mk_test):
+    """Run an autocorrelation-corrected Mann-Kendall test with pymannkendall.
+
+    pymannkendall takes only the values and assumes they are equally spaced,
+    which the regularized series is. Its tau is S divided by the number of
+    pairs (tau-a); for the pre-whitening variant it is computed on the
+    pre-whitened series.
+
+    :param numpy.ndarray y: deseasonalized values
+    :param str mk_test: key of MK_TESTS
+    :return tuple: (tau, p-value), NaN when the test cannot be computed
+    """
+    import pymannkendall
+
+    func_name, label = MK_TESTS[mk_test]
+    # The autocorrelation estimate divides by zero on very short series or
+    # when the (detrended) series has no variance.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        try:
+            res = getattr(pymannkendall, func_name)(y)
+            tau, pvalue = float(res.Tau), float(res.p)
+        except ZeroDivisionError:
+            tau = pvalue = float("nan")
+    if not np.isfinite(pvalue):
+        gs.warning(
+            _(
+                "The {t} Mann-Kendall test could not be computed for this "
+                "series ({n} observations); its p-value is not available."
+            ).format(t=label, n=len(y))
+        )
+    return tau, pvalue
+
+
 def fit_trend(
     series,
     start=0,
@@ -648,6 +718,7 @@ def fit_trend(
     gam_direction="auto",
     scale=1.0,
     unit_label=None,
+    mk_test="kendall",
 ):
     """Linear and GAM regression of the deseasonalized series vs time.
 
@@ -661,10 +732,11 @@ def fit_trend(
     slopes are a value change per observation step. ``scale`` converts those
     into a value change per reporting unit (per day/week/month/year, or per
     step), and ``unit_label`` names that unit. The conversion is applied only
-    to slope-like quantities (OLS/Theil-Sen slope and their confidence bounds,
-    the GAM net change), stored under the ``*_report`` keys; the dimensionless
-    statistics (R^2, p-values, Kendall tau) are never scaled. The raw,
-    index-space ``slope``/``intercept``/``sen_slope``/``sen_intercept`` keys are
+    to the OLS/Theil-Sen slopes and their confidence bounds, stored under the
+    ``*_report`` keys; the GAM net change is a total change over the fitted
+    span and is not scaled, and the dimensionless tatistics (R^2, p-values, 
+    Kendall tau) are never scaled. The raw, index-space 
+    ``slope``/``intercept``/``sen_slope``/``sen_intercept`` keys are
     kept unchanged because the plotted lines are drawn in index space.
 
     ``start``/``stop`` (Python slice convention: ``start`` inclusive, ``stop``
@@ -703,6 +775,8 @@ def fit_trend(
     :param float scale: multiplier converting a per-step slope into a per-unit
         slope (from slope_unit_scale()).
     :param str|None unit_label: name of the reporting unit (e.g. 'year').
+    :param str mk_test: 'kendall' for SciPy's Kendall tau test, or a key of
+        MK_TESTS for an autocorrelation-corrected Mann-Kendall test.
     :return dict|None: regression results, or None if there are fewer than two
         valid observations even without trimming. The dict keys are spelled out
         in the ``return {...}`` block below; the non-obvious ones are: the raw
@@ -749,7 +823,10 @@ def fit_trend(
 
     # Robust trend: Theil-Sen slope (median of pairwise slopes)
     ts_slope, ts_intercept, ts_lo, ts_hi = theilslopes(ym, xm)
-    mk_tau, mk_pvalue = kendalltau(xm, ym)
+    if mk_test == "kendall":
+        mk_tau, mk_pvalue = kendalltau(xm, ym)
+    else:
+        mk_tau, mk_pvalue = mann_kendall(ym, mk_test)
 
     # Optional GAM curve, monotone-constrained unless gam_direction='none'.
     gam = None
@@ -768,6 +845,7 @@ def fit_trend(
         "sen_hi": float(ts_hi),
         "mk_tau": float(mk_tau),
         "mk_pvalue": float(mk_pvalue),
+        "mk_test": mk_test,
         "gam": gam,
         "x_start": int(x[0]),
         "x_stop": int(x[-1]),
@@ -788,11 +866,11 @@ def write_point_vector(vector, east, north, trend_fit=None):
     """Create a point vector layer at the selected (east, north) location.
 
     When a trend regression is supplied, the OLS slope, R^2 and p-value, plus
-    the robust Theil-Sen slope and the Mann-Kendall tau and p-value, are stored
-    as attributes of the single point feature. The slope values are in the
-    chosen reporting unit (per day/week/month/year, or per step), named in the
-    ``slope_unit`` text column. When a GAM was fit, its net change and
-    explained deviance are stored too.
+    the robust Theil-Sen slope and the Mann-Kendall tau, p-value and test
+    variant, are stored as attributes of the single point feature. The slope
+    values are in the chosen reporting unit (per day/week/month/year, or per
+    step), named in the ``slope_unit`` text column. When a GAM was fit, its
+    net change and explained deviance are stored too.
 
     :param str vector: name of the output point vector layer
     :param float east: easting of the point
@@ -814,11 +892,12 @@ def write_point_vector(vector, east, north, trend_fit=None):
             "sen_slope double precision",
             "mk_tau double precision",
             "mk_pvalue double precision",
+            "mk_test varchar(16)",
             "slope_unit varchar(32)",
             "gam_change double precision",
             "gam_deviance double precision",
         ]
-        stdin = "{e},{n},1,{s},{r},{p},{ss},{kt},{kp},{u},{gc},{gd}\n".format(
+        stdin = "{e},{n},1,{s},{r},{p},{ss},{kt},{kp},{mt},{u},{gc},{gd}\n".format(
             e=east,
             n=north,
             s=trend_fit.get("slope_report", trend_fit["slope"]),
@@ -827,6 +906,7 @@ def write_point_vector(vector, east, north, trend_fit=None):
             ss=trend_fit.get("sen_slope_report", trend_fit.get("sen_slope", "")),
             kt=trend_fit.get("mk_tau", ""),
             kp=trend_fit.get("mk_pvalue", ""),
+            mt=trend_fit["mk_test"],
             u=unit_label,
             gc=gam_change,
             gd=gam_dev,
@@ -993,6 +1073,7 @@ def decompose_and_fit(
     label=None,
     envelope_percentile=None,
     breakpoints_opt=None,
+    mk_test="kendall",
 ):
     """Run STL and the trend regressions on one regularized series, with reporting.
 
@@ -1028,6 +1109,7 @@ def decompose_and_fit(
         segment between breakpoints instead of once over the whole series;
         the GAM curve, if requested, is still fit on the whole series (it is
         not meant to be forced through artificial kinks).
+    :param str mk_test: the mk_test= option ('kendall' or a key of MK_TESTS)
 
     :return tuple: (result, trend_fit, trend_fit_segments, envelope_lower,
         envelope_upper) where result is the STL fit, trend_fit is the
@@ -1152,6 +1234,7 @@ def decompose_and_fit(
                 fit_gam_curve=False,
                 scale=scale,
                 unit_label=unit_label,
+                mk_test=mk_test,
             )
             n_seg = seg_fit["x_stop"] - seg_fit["x_start"] + 1 if seg_fit else 0
             if seg_fit is None or n_seg < MIN_SEGMENT_OBS:
@@ -1191,11 +1274,12 @@ def decompose_and_fit(
             if show_sen:
                 gs.message(
                     _(
-                        "{pre}Trend{label} (Theil-Sen / Mann-Kendall): slope={s}, "
+                        "{pre}Trend{label} (Theil-Sen / {m}): slope={s}, "
                         "tau={t:.3f}, p={p:.3g}"
                     ).format(
                         pre=prefix,
                         label=seg_label,
+                        m=mk_name(mk_test),
                         s=format_slope(seg_fit["sen_slope_report"], unit_label),
                         t=seg_fit["mk_tau"],
                         p=seg_fit["mk_pvalue"],
@@ -1215,6 +1299,7 @@ def decompose_and_fit(
         gam_direction=gam_direction,
         scale=scale,
         unit_label=unit_label,
+        mk_test=mk_test,
     )
     if trend_fit is not None:
         applied = trend_fit.get("trim", 0)
@@ -1254,10 +1339,10 @@ def decompose_and_fit(
         if show_sen and not trend_fit_segments:
             gs.message(
                 _(
-                    "{pre}Trend (Theil-Sen / Mann-Kendall): slope={s}, "
-                    "tau={t:.3f}, p={p:.3g}"
+                    "{pre}Trend (Theil-Sen / {m}): slope={s}, tau={t:.3f}, p={p:.3g}"
                 ).format(
                     pre=prefix,
+                    m=mk_name(mk_test),
                     s=format_slope(trend_fit["sen_slope_report"], unit_label),
                     t=trend_fit["mk_tau"],
                     p=trend_fit["mk_pvalue"],
