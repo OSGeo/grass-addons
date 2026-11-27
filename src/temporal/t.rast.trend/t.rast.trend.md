@@ -7,10 +7,10 @@ decomposition using LOESS) and trend analysis of a space-time raster dataset
 ### t.rast.stl
 
 The *t.rast.stl* tool decomposes and plots the time series of the values at a
-single point using STL. Optionally, one or more trend regressions can be fitted to the
-deseasonalized series and drawn on the trend panel, including an ordinary
-least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized
-Additive Model (GAM) curve, shape-constrained (monotone) by default.
+single point using STL. Optionally, one or more trend regressions can be fitted
+to the deseasonalized series and drawn on the trend panel, including an ordinary
+least-squares (OLS) line, a robust Theil-Sen line, and/or a Generalized Additive
+Model (GAM) curve, shape-constrained (monotone) by default.
 
 ![STL analysis output for a point.](t_rast_trend_01.png)
 
@@ -35,11 +35,14 @@ the trend panel.
 The categories can be defined by a categorical raster layer (**raster**), or a
 vector map's features grouped by an attribute column
 (**map**/**layer**/**column**). This can, for example, be a land-cover raster,
-or a vector of administrative units grouped by region name. 
+or a vector of administrative units grouped by region name.
 
 ![STL analysis for three categories in a raster layer.](t_rast_trend_03.png)
 
-By default, the tool uses the matplotlib library to create the plots. Alternatively, the plotly library can be used, which creates a webpage with an interactive plot, allowing you to select one or more categories, thus making it easier to compare trends in case there are many categories.
+By default, the tool uses the matplotlib library to create the plots.
+Alternatively, the plotly library can be used, which creates a webpage with an
+interactive plot, allowing you to select one or more categories, thus making it
+easier to compare trends in case there are many categories.
 
 ![STL analysis for three categories in a raster layer, plotted using plotly.](t_rast_trend_04.png)
 
@@ -53,9 +56,9 @@ project, funded by the Dutch Research Council (NWO) under award
 ## Notes
 
 Installing *t.rast.trend* installs both tools together with the shared
-*trendlib* they depend on. Installing *t.rast.stl* or *t.rast.stl2ca* on
-its own does not install *trendlib*, so install *t.rast.trend* first (or
-alongside) if installing either tool individually.
+*trendlib* they depend on. Installing *t.rast.stl* or *t.rast.stl2ca* on its own
+does not install *trendlib*, so install *t.rast.trend* first (or alongside) if
+installing either tool individually.
 
 ## SEE ALSO
 
