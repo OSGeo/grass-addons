@@ -35,7 +35,7 @@ the trend panel.
 The categories can be defined by a categorical raster layer (**raster**), or a
 vector map's features grouped by an attribute column
 (**map**/**layer**/**column**). This can, for example, be a land-cover raster,
-or a vector of administrative units grouped by region name. 
+or a vector of administrative units grouped by region name.
 
 ![STL analysis for three categories in a raster layer.](t_rast_trend_03.png)
 
