@@ -734,8 +734,8 @@ def fit_trend(
     step), and ``unit_label`` names that unit. The conversion is applied only
     to the OLS/Theil-Sen slopes and their confidence bounds, stored under the
     ``*_report`` keys; the GAM net change is a total change over the fitted
-    span and is not scaled, and the dimensionless tatistics (R^2, p-values, 
-    Kendall tau) are never scaled. The raw, index-space 
+    span and is not scaled, and the dimensionless tatistics (R^2, p-values,
+    Kendall tau) are never scaled. The raw, index-space
     ``slope``/``intercept``/``sen_slope``/``sen_intercept`` keys are
     kept unchanged because the plotted lines are drawn in index space.
 

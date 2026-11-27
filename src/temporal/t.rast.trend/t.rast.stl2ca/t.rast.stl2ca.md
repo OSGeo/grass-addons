@@ -456,7 +456,7 @@ TODO
   autocorrelated data. *Journal of Hydrology*, 204(1–4), 182–196.
 - Hussain et al., (2019). pyMannKendall: a python package for non parametric
   Mann Kendall family of trend tests.. Journal of Open Source Software, 4(39),
-  1556, https://doi.org/10.21105/joss.01556
+  1556, <https://doi.org/10.21105/joss.01556>
 - Local regression. (2026). In *Wikipedia*
   [Wikipedia local regression article](https://en.wikipedia.org/wiki/Local_regression).
 - Seabold, S., & Perktold, J. (2010). Statsmodels: Econometric and Statistical
