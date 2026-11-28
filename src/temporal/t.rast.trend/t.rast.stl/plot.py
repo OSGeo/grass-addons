@@ -3,8 +3,7 @@
 # MODULE:       t.rast.stl (library)
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Plotting for t.rast.stl: the multi-panel STL figure, trend
-#               regression lines, colour helpers and the vlines= option
-#               parser.
+#               regression lines and colour helpers.
 #
 # COPYRIGHT:    (c) 2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -15,9 +14,9 @@
 
 """Plotting (Matplotlib) for t.rast.stl.
 
-np/pd/mpl/plt are set by t.rast.stl.lazy_import_py_modules() -- after GRASS
+np/mpl/plt are set by t.rast.stl.lazy_import_py_modules() -- after GRASS
 parses the command line -- rather than imported here, so a plain module scan
-(--help, g.extension) never needs numpy/pandas/matplotlib installed.
+(--help, g.extension) never needs numpy/matplotlib installed.
 """
 
 import colorsys
@@ -32,76 +31,8 @@ if not callable(globals().get("_")):
 
 # Set by t.rast.stl.lazy_import_py_modules() before any function below runs.
 np = None
-pd = None
 mpl = None
 plt = None
-
-
-def apply_style(style):
-    """Apply a Matplotlib style sheet: either a built-in style name, or the
-    path to a custom .mplstyle file (e.g. to set 'axes.linewidth' thinner
-    than any built-in style does).
-
-    :param str style: name of a built-in Matplotlib style, or a path to a
-        custom style file
-    """
-    if not style:
-        return
-    if style not in plt.style.available and not os.path.isfile(style):
-        gs.fatal(
-            _(
-                "'{}' is neither a built-in style ({}) nor an existing "
-                "file. A custom style is given as the path to a "
-                ".mplstyle file."
-            ).format(style, ", ".join(plt.style.available))
-        )
-    plt.style.use(style)
-
-
-def parse_vlines(vlines_opt, labels_opt, temporal_type):
-    """Parse the vlines/vlines_labels options into plot-ready positions.
-
-    :param str vlines_opt: comma separated dates (absolute time) or integer
-        time steps (relative time); may be empty
-    :param str labels_opt: comma separated labels, in the same order and
-        count as vlines_opt; may be empty (no labels)
-    :param str temporal_type: 'absolute' or 'relative'
-    :return list: list of (position, label|None) tuples, position being a
-        pandas.Timestamp (absolute) or int (relative)
-    """
-    if not vlines_opt:
-        return []
-    raw_values = [v.strip() for v in vlines_opt.split(",") if v.strip()]
-    positions = []
-    for value in raw_values:
-        if temporal_type == "relative":
-            try:
-                positions.append(int(value))
-            except ValueError:
-                gs.fatal(
-                    _(
-                        "Could not parse 'vlines' value '{}' as an integer time step."
-                    ).format(value)
-                )
-        else:
-            try:
-                positions.append(pd.to_datetime(value))
-            except (ValueError, TypeError):
-                gs.fatal(
-                    _("Could not parse 'vlines' value '{}' as a date.").format(value)
-                )
-
-    labels = [label.strip() for label in labels_opt.split(",")] if labels_opt else []
-    if labels and len(labels) != len(positions):
-        gs.fatal(
-            _(
-                "'vlines_labels' must have the same number of values as "
-                "'vlines' ({labels} vs {vlines})."
-            ).format(labels=len(labels), vlines=len(positions))
-        )
-    if not labels:
-        labels = [None] * len(positions)
-    return list(zip(positions, labels))
 
 
 def grass_color_to_mpl(value):
@@ -321,8 +252,10 @@ def draw_trend_lines_for_dataset(
     """Draw one dataset's trend regression line(s), segmented or not.
 
     With ``trend_fit_segments`` (the breakpoints= option), the OLS/Theil-Sen
-    lines are drawn once per segment, each labelled with its own date/step
-    range; the GAM curve, if requested, is still drawn once from
+    lines are drawn once per segment, each labelled with its segment number
+    (the date/step range is already on the terminal and would just clutter
+    the legend here, where the line's own position on the date axis already
+    shows it); the GAM curve, if requested, is still drawn once from
     ``trend_fit``, since it is always fit on the whole series regardless of
     breakpoints_opt. Without ``trend_fit_segments`` this is a plain,
     unsegmented call to draw_trend_lines() for ``trend_fit``, same as before
@@ -333,7 +266,8 @@ def draw_trend_lines_for_dataset(
     :param dict|None trend_fit: whole-series regression results from
         fit_trend()
     :param list|None trend_fit_segments: per-segment (fit_trend() dict,
-        label) pairs from decompose_and_fit(), or None
+        label) pairs from decompose_and_fit(), or None -- the label itself
+        (a date/step range) is not used here, only the fit
     :param bool show_ols: draw the OLS line(s)
     :param bool show_sen: draw the Theil-Sen line(s)
     :param bool show_gam: draw the monotone GAM curve
@@ -361,7 +295,7 @@ def draw_trend_lines_for_dataset(
         )
 
     handles = []
-    for seg_fit, seg_label in trend_fit_segments:
+    for seg_number, (seg_fit, _seg_label) in enumerate(trend_fit_segments, start=1):
         handles += draw_trend_lines(
             ax,
             comp,
@@ -372,7 +306,7 @@ def draw_trend_lines_for_dataset(
             False,
             with_stats=with_stats,
             colors=colors,
-            label_suffix=seg_label + dataset_suffix,
+            label_suffix=_(" (segment {})").format(seg_number) + dataset_suffix,
         )
     if show_gam and trend_fit is not None:
         handles += draw_trend_lines(

@@ -2,14 +2,12 @@
 #
 # MODULE:       t.rast.stl2ca (library)
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Data-extraction and regularization helpers for t.rast.stl2ca:
-#               building the per-category zones raster (from a CELL raster's
-#               own cell values, or from a vector attribute column), parsing
-#               the t.rast.univar output into one series per category, and
-#               resampling each series onto a regular, gap-free axis.
-#
-#               Originally split out of t.rast.stl; t.rast.stl2ca keeps its
-#               own copy since each GRASS addon is installed independently.
+# PURPOSE:      Data-extraction helpers for t.rast.stl2ca: building the
+#               per-category zones raster (from a CELL raster's own cell
+#               values, or from a vector attribute column) and parsing the
+#               t.rast.univar output into one series per category. Series
+#               building and regularization are shared with the other
+#               t.rast.trend tools in trendlib/series.py.
 #
 # COPYRIGHT:    (c) 2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -18,63 +16,23 @@
 #
 #############################################################################
 
-"""Data extraction, category-raster preparation and regularization for
-t.rast.stl2ca.
-
-np/pd are set by t.rast.stl2ca.lazy_import_py_modules() -- after GRASS parses
-the command line -- rather than imported here, so a plain module scan
-(--help, g.extension) never needs numpy/pandas installed.
-"""
+"""Data extraction and category-raster preparation for t.rast.stl2ca."""
 
 import os
 
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
+from trendlib.series import find_column, parse_zonal_token, percentile_column_name
+
 if not callable(globals().get("_")):
     from gettext import gettext as _
-
-# Set by t.rast.stl2ca.lazy_import_py_modules() before any function below runs.
-np = None
-pd = None
 
 # Temporary dirs/rasters created during extraction, removed by
 # t.rast.stl2ca.cleanup() at exit (imported there via 'from extract import').
 # The user's own raster= input is never added here (see validate_category_raster()).
 clean_dirs = []
 clean_rasters = []
-
-
-def find_column(header, name):
-    """Return the index of a column named ``name`` in a pipe-table header.
-
-    :param list header: header row, already split on '|'
-    :param str name: column name to look up
-    :return int|None: column index, or None if not present
-    """
-    try:
-        return header.index(name)
-    except ValueError:
-        return None
-
-
-def parse_zonal_token(token):
-    """Parse one t.rast.univar cell value, mapping null/NaN tokens to None.
-
-    t.rast.univar reports an all-null timestep (e.g. no valid pixels in the
-    zone) as 'nan' or '-nan' rather than the '*'/'None' tokens t.rast.what
-    uses, so those are treated as missing here too.
-
-    :param str token: raw cell value
-    :return float|None: the parsed value, or None if missing/unparseable
-    """
-    token = token.strip()
-    if token.lower() in ("", "*", "none", "nan", "-nan"):
-        return None
-    try:
-        return float(token)
-    except ValueError:
-        return None
 
 
 def validate_category_raster(raster):
@@ -512,186 +470,3 @@ def extract_zonal_series_multi(
         counts = series["counts"] if want_dispersion else None
         result[zone_value] = (series["dates"], series["values"], lowers, uppers, counts)
     return result
-
-
-def percentile_column_name(value):
-    """Build the t.rast.univar column name for a percentile value.
-
-    Mirrors the string transform GRASS core's own
-    grass.temporal.univar_statistics uses to name percentile columns
-    (e.g. 90 -> 'percentile_90', 95.5 -> 'percentile_95_5'), so this stays
-    coupled to that naming and needs updating if it ever changes there.
-
-    :param float value: percentile value (0-100)
-    :return str: the matching t.rast.univar column name
-    """
-    token = str(float(value)).rstrip("0").rstrip(".").replace(".", "_")
-    return f"percentile_{token}"
-
-
-def build_series(dates, values, temporal_type="absolute"):
-    """Build a pandas Series indexed by datetime (absolute) or integer (relative).
-
-    :param list dates: list of date strings (absolute) or integer strings (relative)
-    :param list values: corresponding float values
-    :param str temporal_type: 'absolute' or 'relative'
-    :return pandas.Series: float series sorted by index
-    """
-    if temporal_type == "relative":
-        idx = pd.Index([int(d) for d in dates], dtype="int64")
-    else:
-        idx = pd.to_datetime(dates, format="mixed")
-    s = pd.Series(values, index=idx, dtype="float64").sort_index()
-    s = s[~s.index.duplicated(keep="first")]
-    return s
-
-
-def resolve_relative_step(series, step_opt, tinfo):
-    """Determine the integer spacing of the regular axis for a relative STRDS.
-
-    Priority: explicit 'step' option > dataset granularity (t.info) > fatal.
-
-    :param pandas.Series series: irregular point series (integer index)
-    :param str step_opt: the step= option value (may be empty)
-    :param dict|None tinfo: parsed t.info -g output
-
-    :return int: positive integer step
-    """
-    if step_opt:
-        step = int(step_opt)
-        if step <= 0:
-            gs.fatal(_("The 'step' option must be a positive integer."))
-        gs.message(_("Using user-supplied relative step of {}.").format(step))
-        return step
-    if tinfo:
-        gran = str(tinfo.get("granularity", "")).strip()
-        if gran.isdigit() and int(gran) > 0:
-            gs.message(
-                _("Using STRDS granularity of {} as the relative step.").format(gran)
-            )
-            return int(gran)
-    gs.fatal(
-        _(
-            "Could not determine the regular spacing for this relative STRDS. "
-            "The granularity was not available from t.info; please set the "
-            "'step' option explicitly (integer, in the dataset's time unit)."
-        )
-    )
-
-
-def regularize(
-    series,
-    frequency,
-    method,
-    order,
-    temporal_type="absolute",
-    step=None,
-    tinfo=None,
-    report=True,
-):
-    """Resample onto a regular axis and interpolate gaps.
-
-    STL requires an evenly spaced, gap-free series. To ensure this, data is resampled
-    to the target frequency and interpolated.
-
-    For relative STRDS the index is an integer sequence. The grid step comes
-    from the 'step' option or the dataset granularity, the extent comes from
-    the observed values, and any observation that does not land on a grid
-    node is snapped to the nearest node with a warning.
-
-    :param pandas.Series series: irregular point series
-    :param str frequency: pandas offset alias (e.g. 'MS', '16D'); may be empty.
-        Ignored for relative STRDS.
-    :param str method: pandas interpolate() method
-    :param int|None order: order for spline/polynomial methods
-    :param str temporal_type: 'absolute' or 'relative'
-    :param str|None step: relative-time step override (option value)
-    :param dict|None tinfo: parsed t.info -g output (relative granularity)
-    :param bool report: print the inferred-frequency message when 'frequency'
-        is unset. False for the dispersion-band's extra regularize() calls,
-        so the same inference isn't reported three times over for one dataset.
-
-    :return pandas.Series: regular, gap-free series
-    """
-    if temporal_type == "relative":
-        step_val = resolve_relative_step(series, step, tinfo)
-        # Anchor the grid to the dataset start when available (so the lattice
-        # phase matches the STRDS), else to the first observation. The top is
-        # the last observation to avoid a non-existing trailing node.
-        origin = int(series.index.min())
-        if tinfo:
-            start_meta = str(tinfo.get("start_time", "")).strip()
-            try:
-                origin = int(start_meta)
-            except (TypeError, ValueError):
-                pass
-        last = int(series.index.max())
-        # Build nodes from origin up to and including the last observation.
-        # Cap strictly at 'last' so an interval STRDS's end_time (one step
-        # beyond the final map start) cannot introduce a non-existing
-        # trailing node.
-        n_nodes = (last - origin) // step_val + 1
-        nodes = origin + np.arange(n_nodes) * step_val
-        nodes = nodes[nodes <= last]
-        full_idx = pd.Index(nodes.astype("int64"))
-
-        # Snap each observation to its nearest grid node. Off-grid points are
-        # warned about and re-labelled rather than dropped on reindex.
-        offsets = series.index.to_numpy() - origin
-        snapped = origin + np.round(offsets / step_val).astype("int64") * step_val
-        off_grid = int((snapped != series.index.to_numpy()).sum())
-        if off_grid:
-            gs.warning(
-                _(
-                    "{n} of {t} observation(s) did not fall on the regular "
-                    "step={s} grid and were snapped to the nearest grid node."
-                ).format(n=off_grid, t=len(series), s=step_val)
-            )
-        snapped_series = pd.Series(series.to_numpy(), index=pd.Index(snapped))
-        # If two observations are on the same node, they are averaged
-        snapped_series = snapped_series.groupby(level=0).mean()
-        resampled = snapped_series.reindex(full_idx)
-    elif frequency:
-        resampled = series.resample(frequency).mean()
-    else:
-        # Try to use the inferred frequency of the index.
-        inferred = pd.infer_freq(series.index)
-        if inferred is None:
-            gs.fatal(
-                _(
-                    "No 'frequency' was given and the series spacing could not "
-                    "be inferred. Please set the frequency option (e.g. 'MS', "
-                    "'16D')."
-                )
-            )
-        if report:
-            gs.message(
-                _("Inferred a regular frequency of '{}' from the data.").format(
-                    inferred
-                )
-            )
-        resampled = series.asfreq(inferred)
-
-    interp_kwargs = {"method": method, "limit_direction": "both"}
-    if method in ("spline", "polynomial"):
-        if not order:
-            gs.fatal(
-                _("The '{}' interpolation method requires the 'order' option.").format(
-                    method
-                )
-            )
-        interp_kwargs["order"] = int(order)
-
-    filled = resampled.interpolate(**interp_kwargs)
-    # Edge gaps that interpolation could not reach: back/forward fill.
-    filled = filled.bfill().ffill()
-
-    if filled.isna().any():
-        gs.fatal(_("Series still contains gaps after interpolation; cannot run STL."))
-    if len(filled) < 4:
-        gs.fatal(
-            _("Too few observations ({}) after regularization to run STL.").format(
-                len(filled)
-            )
-        )
-    return filled

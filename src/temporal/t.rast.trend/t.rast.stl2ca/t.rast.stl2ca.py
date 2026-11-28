@@ -133,6 +133,15 @@
 # %end
 
 # %option
+# % key: max_gap
+# % type: integer
+# % label: Maximum gap length
+# % description: Longest run of consecutive missing steps on the regularized time axis that may be interpolated. A longer gap stops the module. Unset for no limit.
+# % required: no
+# % guisection: Regularization
+# %end
+
+# %option
 # % key: period
 # % type: integer
 # % label: Seasonal period
@@ -471,11 +480,12 @@ if not callable(globals().get("_")):
     from gettext import gettext as _
 
 # extract.py/stats.py/plot.py/interactive.py: this module's own library
-# files Each library module leaves its own
-# numpy/pandas/matplotlib/statsmodels/scipy names as None at import
-# time (set below, by lazy_import_py_modules(), once GRASS has parsed
-# the command line) so a plain module scan (--help, g.extension) never
-# needs the scientific stack installed.
+# files; trend.py, series.py and plotstyle.py are shared with the other
+# tools via the trendlib library of the t.rast.trend bundle. Each library
+# module leaves its own numpy/pandas/matplotlib/statsmodels/scipy names as
+# None at import time (set below, by lazy_import_py_modules(), once GRASS
+# has parsed the command line) so a plain module scan (--help,
+# g.extension) never needs the scientific stack installed.
 #
 # Derive the path from the script's location. set_path() is a fallback
 # for any layout that assumption does not hold.
@@ -489,11 +499,10 @@ if os.path.isdir(_lib_path):
 else:
     set_path("t.rast.stl2ca")
 set_path(modulename="t.rast.trend", dirname="trendlib", path="..")
-import extract  # noqa: E402
 import plot  # noqa: E402
 import interactive  # noqa: E402
 import stats  # noqa: E402
-from trendlib import trend  # noqa: E402
+from trendlib import plotstyle, series, trend  # noqa: E402
 from extract import (  # noqa: E402
     clean_dirs,
     clean_rasters,
@@ -505,16 +514,29 @@ from extract import (  # noqa: E402
     discover_categories,
     filter_categories,
     extract_zonal_series_multi,
+)
+from trendlib.series import (  # noqa: E402
     build_series,
+    longest_gap,
     regularize,
+    resolve_nprocs,
+    validate_frequency,
 )
 from trendlib.trend import (  # noqa: E402
     decompose_and_fit,
+    gs_step,
     require_pymannkendall,
     validate_odd_window,
 )
 from stats import write_trend_stats_csv  # noqa: E402
-from plot import apply_style, plot_result, parse_vlines  # noqa: E402
+from trendlib.plotstyle import (  # noqa: E402
+    apply_style,
+    check_output_format,
+    check_plot_numbers,
+    parse_plot_dimensions,
+    parse_vlines,
+)
+from plot import plot_result  # noqa: E402
 from interactive import plot_interactive  # noqa: E402
 
 
@@ -538,8 +560,8 @@ def lazy_import_py_modules(backend="WXAgg"):
 
     Imports numpy/pandas/statsmodels/scipy/matplotlib once the command line
     has been parsed, and hands each to the library module(s) that use it.
-    extract.py/trend.py/stats.py/plot.py each leave the name as None at
-    import time (see their module docstrings) until this runs. This is
+    series.py/trend.py/stats.py/plotstyle.py/plot.py each leave the name as
+    None at import time (see their module docstrings) until this runs. This is
     what keeps a plain module scan (--help, g.extension) from ever needing
     the scientific stack installed.
 
@@ -586,8 +608,8 @@ def lazy_import_py_modules(backend="WXAgg"):
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is required but not installed. Please install it."))
 
-    extract.np = np
-    extract.pd = pd
+    series.np = np
+    series.pd = pd
     trend.np = np
     trend.pd = pd
     trend.STL = STL
@@ -595,8 +617,9 @@ def lazy_import_py_modules(backend="WXAgg"):
     trend.theilslopes = theilslopes
     trend.kendalltau = kendalltau
     stats.pd = pd
+    plotstyle.pd = pd
+    plotstyle.plt = plt
     plot.np = np
-    plot.pd = pd
     plot.mpl = mpl
     plot.plt = plt
 
@@ -704,6 +727,9 @@ def validate_options(options, flags, temporal_type):
         if options[key] and int(options[key]) < 1:
             gs.fatal(_("'{}' must be a positive integer.").format(key))
 
+    if options["max_gap"] and int(options["max_gap"]) < 0:
+        gs.fatal(_("'max_gap' must be zero or a positive integer."))
+
     # Spline/polynomial interpolation needs an explicit order.
     if options["interpolation"] in ("spline", "polynomial") and not options["order"]:
         gs.fatal(
@@ -726,26 +752,9 @@ def validate_options(options, flags, temporal_type):
         if int(options["step"]) <= 0:
             gs.fatal(_("The 'step' option must be a positive integer."))
 
-    # Absolute-time 'frequency', when given, must be a pandas offset alias
-    # (a unit, optionally with a multiplier), e.g. 'D', 'W', 'MS', '16D',
-    # '5YS'. A bare number has no unit and pandas rejects it with an opaque
-    # message. The below will catch it and give a clear message instead.
-    if temporal_type == "absolute" and options["frequency"]:
-        try:
-            # lazy_import_py_modules() (called before this) has already set
-            # extract.pd; validate_options() itself has no reason to import
-            # pandas again just for this one check.
-            extract.pd.tseries.frequencies.to_offset(options["frequency"])
-        except (ValueError, TypeError):
-            gs.fatal(
-                _(
-                    "The 'frequency' value '{v}' is not a valid pandas offset "
-                    "alias. It needs a time unit, optionally with a leading "
-                    "multiplier, e.g. 'D' (day), 'W' (week), 'MS' (month "
-                    "start), '16D' (16 days), 'YS' or '5YS' (year start). A "
-                    "bare number is not accepted."
-                ).format(v=options["frequency"])
-            )
+    # Absolute-time 'frequency', when given, must be a pandas offset alias.
+    if temporal_type == "absolute":
+        validate_frequency(options["frequency"])
 
     require_pymannkendall(options["mk_test"])
 
@@ -805,10 +814,11 @@ def main(options, flags):
     )
     strds = options["strds"]
     where = options["where"]
-    nprocs = int(options["nprocs"]) if options["nprocs"] else 1
+    nprocs = resolve_nprocs(options["nprocs"])
     frequency = options["frequency"]
     interpolation = options["interpolation"]
     order = options["order"]
+    max_gap = int(options["max_gap"]) if options["max_gap"] else None
     step = options["step"]
     period_opt = options["period"]
     seasonal = options["seasonal"]
@@ -824,7 +834,8 @@ def main(options, flags):
     breakpoints_opt = options["breakpoints"]
     slope_unit = options["slope_unit"]
     mk_test = options["mk_test"]
-    plot_dimensions = options["plot_dimensions"]
+    check_plot_numbers(options)
+    plot_dimensions = parse_plot_dimensions(options["plot_dimensions"])
     plots = [p for p in options["plots"].split(",") if p] if options["plots"] else []
     dpi = float(options["dpi"]) if options["dpi"] else 300
     colormap = options["colormap"]
@@ -853,6 +864,8 @@ def main(options, flags):
     lazy_import_py_modules(backend=backend)
     if flags["i"]:
         lazy_import_plotly()
+    elif output:
+        check_output_format(output)
     apply_style(options["style"])
 
     if colormap != "raster" and colormap not in plot.plt.colormaps():
@@ -888,7 +901,7 @@ def main(options, flags):
 
     zone_raster, category_list = resolve_category_raster(options)
 
-    gs.message(_("Extracting the zonal time series for all categories..."))
+    gs_step(_("Extracting the zonal time series for all categories..."))
     extracted = extract_zonal_series_multi(
         strds=strds,
         zone_raster=zone_raster,
@@ -927,10 +940,10 @@ def main(options, flags):
             )
             continue
 
-        gs.message(
+        gs_step(
             _("[{d}] Regularizing the series and interpolating gaps...").format(d=label)
         )
-        ds_regular = regularize(
+        ds_regular, ds_interpolated = regularize(
             series=ds_series,
             frequency=frequency,
             method=interpolation,
@@ -938,6 +951,8 @@ def main(options, flags):
             temporal_type=temporal_type,
             step=step,
             tinfo=tinfo,
+            max_gap=max_gap,
+            name=label,
         )
 
         # The dispersion band (if any) is observed-panel annotation only; it
@@ -983,7 +998,7 @@ def main(options, flags):
                 step=step,
                 tinfo=tinfo,
                 report=False,
-            )
+            )[0].reindex(ds_regular.index)
             ds_band_upper = regularize(
                 series=ds_upper_series,
                 frequency=frequency,
@@ -993,7 +1008,7 @@ def main(options, flags):
                 step=step,
                 tinfo=tinfo,
                 report=False,
-            )
+            )[0].reindex(ds_regular.index)
 
         (
             ds_result,
@@ -1019,6 +1034,7 @@ def main(options, flags):
             envelope_percentile=envelope_percentile,
             breakpoints_opt=breakpoints_opt,
             mk_test=mk_test,
+            longest_gap=longest_gap(ds_interpolated),
         )
         categories.append(
             {
@@ -1045,7 +1061,7 @@ def main(options, flags):
 
     # Plot: interactive HTML (-i) or the static Matplotlib figure
     # (save-by-extension or show).
-    gs.message(_("Creating the figure..."))
+    gs_step(_("Creating the figure..."))
     if flags["i"]:
         plot_interactive(
             categories=categories,
@@ -1063,7 +1079,7 @@ def main(options, flags):
         )
     else:
         if plot_dimensions:
-            dimensions = [float(x) for x in plot_dimensions.split(",")]
+            dimensions = plot_dimensions
         else:
             # Default height scales with the number of panels (2 inches each),
             # so the full four-panel figure stays 8x8 while smaller selections

@@ -7,7 +7,6 @@ include(build_addon)
 add_files_to_etc_dir(
   ${PROJECT_NAME}
   FILES
-    extract.py
     plot.py)
 
 build_addon(

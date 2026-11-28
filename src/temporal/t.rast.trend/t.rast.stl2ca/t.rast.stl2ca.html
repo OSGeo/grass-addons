@@ -90,11 +90,10 @@ the raster's own category label if it has one). For example
 <i>categories=1,3</i> or <i>categories=forest,water</i>.
 
 <p>
-Either way, the module samples at the <i>current computational region</i>'s
-resolution. Set the region with <i><a href="g.region.md">g.region</a></i> before
-running if needed. A category with no overlap with the current region, or no
-non-null data at any registered timestep, is skipped with a warning rather than
-aborting the whole run.
+The module respects the <i>current computational region</i>'s resolution. Set
+the region with <i><a href="g.region.md">g.region</a></i> before running if
+needed. A category with no overlap with the current region, or no non-null data
+at any registered timestep, is skipped with a warning.
 
 <p>
 The per-timestep pixel values within a category are summarized by
@@ -163,11 +162,8 @@ shown in a window. The interactive plot has the following features:
 </ul>
 
 <p>
-<b>plots</b>, <b>-d</b>, <b>-s</b>, <b>seasonal_envelope</b>, <b>vlines</b>,
-<b>colormap</b>, <b>title</b>, <b>line_width</b> and <b>fontsize</b> all carry
-over unchanged. <b>backend</b>, <b>dpi</b>, <b>plot_dimensions</b> and
-<b>style</b> are Matplotlib-only and are ignored for the HTML plot with a
-warning.
+<b>backend</b>, <b>dpi</b>, <b>plot_dimensions</b> and <b>style</b> are
+Matplotlib-only and are ignored for the HTML plot with a warning.
 
 <h3>Absolute vs. relative time</h3>
 
@@ -178,7 +174,7 @@ the x-axis is labelled "Time step".
 <h3>Regularization</h3>
 
 STL requires an evenly spaced, gap-free series. The series is therefore
-resampled onto a regular axis, and any gaps are then filled in. Three options
+resampled onto a regular axis, and any gaps are then filled in. Four options
 control this:
 
 <p>
@@ -211,6 +207,17 @@ distance between observations. For the other options, <tt>nearest</tt>,
 function, which this module uses for the gap filling.
 
 <p>
+Only gaps between observations are filled. Steps before the first and after the
+last observation, e.g., when the dataset starts or ends with NULL maps, are left
+out, so the analysed series covers the observed period only. The module reports
+the number of left-out steps, the number of interpolated steps, and the length
+of the longest gap. A warning is given when a gap spans one seasonal period or
+more, as the seasonal component over that gap is then interpolated rather than
+observed. <b>max_gap</b> sets the longest run of consecutive missing steps that
+may be interpolated; a longer gap stops the module with the dates of that gap.
+By default, gaps of any length are interpolated.
+
+<p>
 You will normally want to make sure the <b>frequency</b> (or <b>step</b>)
 matches the real sampling of your data. If these are not matching, your data
 will be resampled. For example, setting data that is actually 16-day composites
@@ -219,15 +226,16 @@ series.
 
 <h3>Decomposition (STL)</h3>
 
-The decomposition wraps <tt>statsmodels.tsa.seasonal.STL</tt>, run with the same
-settings on every category. Its most important parameter is <b>period</b>, which
-is tied to the regularized frequency (or, for relative-time data, the step /
-granularity). It is the number of observations in one full seasonal cycle. For
-example 12 for monthly data, 23 for a 16-day composite series (≈ 365 / 16), or
-365 for daily data with an annual cycle. If <b>period</b> is not given it is
-estimated from the resampled frequency (or, for relative-time data, the dataset
-granularity). Set it explicitly whenever you are unsure the inference will be
-right, or when your cycle is not annual.
+The decomposition wraps <tt>statsmodels.tsa.seasonal.STL</tt>. Its most
+important parameter is <b>period</b>, which is tied to the regularized frequency
+(or, for relative-time data, the step / granularity). It is the number of
+observations in one full seasonal cycle. For example, 12 for monthly data, 23
+for a 16-day composite series (≈ 365 / 16), or 365 for daily data with an annual
+cycle. If <b>period</b> is not given, it is estimated from the resampled
+frequency (or, for relative-time data, the dataset granularity): an annual cycle
+for daily and longer steps, and a daily cycle for hourly and shorter steps
+(e.g., 24 for hourly data). Set it explicitly whenever you are unsure the
+inference will be right, or when your cycle is different.
 
 <p>
 The remaining STL options fine-tune the LOESS smoothers. For users familiar with
@@ -250,7 +258,7 @@ seasonal window. The equivalent parameter in R's stl() function is
 
 <p>
 <b>low_pass</b>: length of the low-pass smoother (odd integer ≥ 3). This is an
-internal step separating season from trend; the default (the smallest odd number
+internal step separating season from trend. The default (the smallest odd number
 larger than <b>period</b>) is almost always fine. The equivalent parameter in
 R's stl() function is <tt>l.window</tt>.
 
@@ -291,18 +299,20 @@ rather than computed from a partial window.
 
 <h3>Trend line and statistics</h3>
 
-Beyond the visual decomposition, the tool quantifies the long-term change in
-each category by fitting a robust Theil-Sen regression (SciPy's
-<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">theilslopes</a>)
-to its <b>deseasonalized observed</b> series (<tt>trend + residual</tt>,
-equivalently <tt>observed - seasonal</tt>), reported with its slope and a
-monotonic-trend <i>p</i>-value from Kendall's rank-correlation test (SciPy's
-<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
-This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
-apply the continuity correction, so the <i>p</i>-values may differ slightly from
-those of other Mann-Kendall implementations.
+The tool can quantify the long-term change by fitting regressions to the
+<b>deseasonalized observed</b> series and drawing them on the trend panel. The
+deseasonalized series is <tt>trend + residual</tt>, which is equivalent to
+<tt>observed - seasonal</tt>.
 
 <p>
+Three fits are available. The first is an ordinary least-squares (OLS) line,
+reported with its <b>slope</b> and <b>R²</b>. The second is a robust Theil-Sen
+line (SciPy's
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">theilslopes</a>),
+reported with its slope and a monotonic-trend <i>p</i>-value from Kendall's
+rank-correlation test (SciPy's
+<a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
+This option is more resistant to outliers and does not assume normal residuals.
 The <b>mk_test</b> option offers variants that correct for serial
 autocorrelation, computed with the
 <a href="https://github.com/mmhs013/pyMannKendall">pymannkendall</a> package:
@@ -444,17 +454,14 @@ above).
 <p>
 The <b>nprocs</b> option sets the number of parallel processes
 <i><a href="t.rast.univar.md">t.rast.univar</a></i> uses for the zonal
-extraction, which covers every category in one call; this can make the module
-substantially faster to run, but setting it higher than the number of CPU cores
-available just adds contention rather than speed. The main per-run cost is
-<i>t.rast.univar</i> itself, which runs once per registered map in <b>strds</b>
-(filtered by <b>where</b>, if given): a strds with very many registered maps can
-take a while regardless of region size or category count, since the dominant
-cost is then the number of maps, not the number of pixels. The module
-automatically shrinks the region it samples at to the categories' own extent
-first (see "The categories" above), which helps substantially when the
-categories occupy only a small part of a much larger current region, but does
-not reduce the per-map cost of a strds with many registered maps.
+extraction, which covers every category in one call. Be careful not to set this
+higher than the number of CPU cores available.
+
+<p>
+The module automatically shrinks the region it samples at to the categories' own
+extent first (see "The categories" above), which mostly helps when the
+categories occupy only a small part of a much larger current region. But note
+that it can still take long time when there are many maps.
 
 <h2>NOTES</h2>
 
@@ -525,7 +532,7 @@ TODO
   for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
   <li>Hussain et al., (2019). pyMannKendall: a python package for non parametric
   Mann Kendall family of trend tests.. Journal of Open Source Software, 4(39),
-  1556, https://doi.org/10.21105/joss.01556</li>
+  1556, &lt;https://doi.org/10.21105/joss.01556&gt;</li>
   <li>Local regression. (2026). In <i>Wikipedia</i>
   <a href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local regression article</a>.</li>
   <li>Seabold, S., &amp; Perktold, J. (2010). Statsmodels: Econometric and

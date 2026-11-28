@@ -32,6 +32,7 @@ import grass.script as gs
 
 from plot import category_colors
 from stats import trend_stats_rows
+from trendlib.trend import gs_step
 
 if not callable(globals().get("_")):
     from gettext import gettext as _
@@ -644,7 +645,7 @@ def plot_interactive(
             )
         )
     else:
-        gs.message(_("Opening the plot in a browser tab..."))
+        gs_step(_("Opening the plot in a browser tab..."))
         with tempfile.NamedTemporaryFile(
             suffix=".html", delete=False, mode="w", encoding="utf-8"
         ) as f:

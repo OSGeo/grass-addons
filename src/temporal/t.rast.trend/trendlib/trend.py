@@ -25,6 +25,7 @@ never needs numpy/pandas/statsmodels/scipy installed.
 """
 
 import importlib.util
+import os
 
 import grass.script as gs
 from grass.exceptions import CalledModuleError
@@ -40,6 +41,23 @@ STL = None
 linregress = None
 theilslopes = None
 kendalltau = None
+
+
+def gs_step(message):
+    """Announce the start of a processing step.
+
+    A blank line plus a leading marker sets a step's "doing X..." message
+    apart from the result line(s) that follow it, so a run with several
+    steps reads as separate blocks instead of one undifferentiated stream.
+
+    :param str message: the step description (conventionally ending "...")
+    """
+    # gs.message() shells out to g.message; an empty string is dropped by
+    # make_command() before it gets there, so g.message sees no 'message='
+    # at all and rejects it as a missing required parameter. A single space
+    # is non-empty and prints as a blank line.
+    gs.message(" ")
+    gs.message("==> {}".format(message))
 
 
 def lazy_import_pygam():
@@ -62,6 +80,56 @@ def lazy_import_pygam():
         )
 
 
+def frequency_parts(frequency):
+    """Split a pandas frequency into its unit and multiple, e.g. '16D' -> ('D', 16).
+
+    The unit is read from pandas' own offset object, not from the letters of
+    the string: pandas writes anchored frequencies with a suffix, e.g. 'W' as
+    'W-SUN', 'QS' as 'QS-JAN' and 'YS' as 'YS-JAN', and the part before the
+    '-' is the unit. Upper case, so that the hour is 'H' in every pandas
+    version (pandas 2.2 renamed it 'h').
+
+    :param str frequency: pandas offset alias, e.g. 'MS', '16D', 'W-MON'
+    :return tuple: (str unit, int multiple), or (None, 1) when frequency is
+        empty or not a pandas frequency
+    """
+    if not frequency:
+        return None, 1
+    try:
+        offset = pd.tseries.frequencies.to_offset(frequency)
+    except (ValueError, TypeError):
+        return None, 1
+    return offset.rule_code.split("-")[0].upper(), offset.n
+
+
+# Units of annual frequencies, which have no seasonal cycle within the series.
+# "A"/"AS" are the pre-2.2 pandas names of "YE"/"YS".
+_ANNUAL_UNITS = {"Y", "YS", "YE", "A", "AS"}
+
+# Number of steps of each frequency unit in one seasonal cycle: a year for
+# daily and longer steps, a day for shorter ones (hourly data cycle daily,
+# and a year of hourly steps is too long a period for STL). "M"/"Q" are the
+# month-/quarter-end aliases of pandas < 2.2 (now "ME"/"QE"), and "T"/"S"
+# the minute/second aliases (now "min"/"s"); "MS"/"QS" are the same in all
+# versions. All are listed so frequencies entered against either pandas
+# generation work.
+_UNITS_PER_CYCLE = {
+    "D": 365,
+    "B": 252,
+    "W": 52,
+    "M": 12,
+    "MS": 12,
+    "ME": 12,
+    "Q": 4,
+    "QS": 4,
+    "QE": 4,
+    "H": 24,
+    "MIN": 24 * 60,
+    "T": 24 * 60,
+    "S": 24 * 3600,
+}
+
+
 def infer_period(series, period_opt, temporal_type="absolute", tinfo=None):
     """Determine the STL seasonal period.
 
@@ -77,9 +145,10 @@ def infer_period(series, period_opt, temporal_type="absolute", tinfo=None):
 
     if temporal_type == "relative":
         # Try to derive period from granularity + unit reported by t.info.
-        per_year_by_unit = {
-            "seconds": 365 * 24 * 3600,
-            "minutes": 365 * 24 * 60,
+        # Units per seasonal cycle, as for absolute time (_UNITS_PER_CYCLE).
+        per_cycle_by_unit = {
+            "seconds": 24 * 3600,
+            "minutes": 24 * 60,
             "hours": 24,
             "days": 365,
             "weeks": 52,
@@ -89,9 +158,9 @@ def infer_period(series, period_opt, temporal_type="absolute", tinfo=None):
         if tinfo:
             unit = tinfo.get("unit", "").strip().lower().rstrip("s") + "s"
             granularity = tinfo.get("granularity", "").strip()
-            if unit in per_year_by_unit and granularity.isdigit():
-                per_year = per_year_by_unit[unit]
-                period = max(2, round(per_year / int(granularity)))
+            if unit in per_cycle_by_unit and granularity.isdigit():
+                per_cycle = per_cycle_by_unit[unit]
+                period = max(2, round(per_cycle / int(granularity)))
                 gs.message(
                     _(
                         "Inferred seasonal period of {} from STRDS granularity ({} {})."
@@ -115,27 +184,17 @@ def infer_period(series, period_opt, temporal_type="absolute", tinfo=None):
             )
         )
     # Map common pandas offset aliases to an annual seasonal period.
-    base = "".join(ch for ch in freq if ch.isalpha()).upper()
-    mult = "".join(ch for ch in freq if ch.isdigit())
-    mult = int(mult) if mult else 1
-    per_year = {
-        "D": 365,
-        "B": 252,
-        "W": 52,
-        # "M"/"Q" are the legacy month-/quarter-end aliases (pandas < 2.2); they
-        # were deprecated in 2.2 and removed in favour of "ME"/"QE". "MS"/"QS"
-        # (month-/quarter-start) are unchanged across versions. All are listed so
-        # frequencies entered against either pandas generation works.
-        "M": 12,
-        "MS": 12,
-        "ME": 12,
-        "Q": 4,
-        "QS": 4,
-        "QE": 4,
-        "H": 24,
-    }
-    if base in per_year:
-        period = max(2, round(per_year[base] / mult))
+    base, mult = frequency_parts(freq)
+    if base in _ANNUAL_UNITS:
+        gs.fatal(
+            _(
+                "The series has an annual frequency ('{}'), so it has no "
+                "seasonal cycle to infer a period from. Set the 'period' "
+                "option explicitly if there is one."
+            ).format(freq)
+        )
+    if base in _UNITS_PER_CYCLE:
+        period = max(2, round(_UNITS_PER_CYCLE[base] / mult))
         gs.message(
             _("Inferred seasonal period of {} from frequency '{}'.").format(
                 period, freq
@@ -295,11 +354,16 @@ def step_length_days(frequency, tinfo):
         "ME": 365.2425 / 12.0,
         "Q": 365.2425 / 4.0,
         "QS": 365.2425 / 4.0,
+        "QE": 365.2425 / 4.0,
         "Y": 365.2425,
         "YS": 365.2425,
+        "YE": 365.2425,
         "A": 365.2425,
         "AS": 365.2425,
         "H": 1.0 / 24.0,
+        "MIN": 1.0 / 1440.0,
+        "T": 1.0 / 1440.0,
+        "S": 1.0 / 86400.0,
     }
     freq = frequency
     if not freq and tinfo:
@@ -323,9 +387,7 @@ def step_length_days(frequency, tinfo):
         return None
     if not freq:
         return None
-    base = "".join(ch for ch in freq if ch.isalpha()).upper()
-    mult = "".join(ch for ch in freq if ch.isdigit())
-    mult = int(mult) if mult else 1
+    base, mult = frequency_parts(freq)
     if base in days_per_unit:
         return mult * days_per_unit[base]
     return None
@@ -472,16 +534,16 @@ def step_label(frequency, tinfo):
         "ME": "month",
         "Q": "quarter",
         "QS": "quarter",
+        "QE": "quarter",
         "Y": "year",
         "YS": "year",
+        "YE": "year",
         "A": "year",
         "AS": "year",
         "H": "hour",
     }
     if frequency:
-        base = "".join(ch for ch in frequency if ch.isalpha()).upper()
-        mult = "".join(ch for ch in frequency if ch.isdigit())
-        mult = int(mult) if mult else 1
+        base, mult = frequency_parts(frequency)
         unit = alias_unit.get(base)
         if unit:
             return unit_label(mult, unit)
@@ -520,17 +582,12 @@ def format_slope(value, unit_label=None):
     return text
 
 
-def write_csv(
-    result,
-    csv_path,
-    temporal_type="absolute",
-    band_lower=None,
-    band_upper=None,
-    statistic=None,
-    envelope_lower=None,
-    envelope_upper=None,
-):
-    """Write the decomposition components to a CSV file.
+def write_csv(datasets, csv_path, temporal_type="absolute", statistic=None):
+    """Write the decomposition components of each dataset to one CSV file.
+
+    One row per dataset and time step, with the dataset name in the 'strds'
+    column, the components, and 'interpolated': 1 where the step had no
+    observation and its value was interpolated, otherwise 0.
 
     When a dispersion band is given (zone mode with the -d flag), it is
     added as extra columns named for what they actually are: 'sd' for the
@@ -539,34 +596,135 @@ def write_csv(
     When a seasonal envelope is given (the seasonal_envelope= option), it is
     added as 'seasonal_lower'/'seasonal_upper' columns.
 
-    :param dict|None band_lower: regularized lower-band Series, or None
-    :param dict|None band_upper: regularized upper-band Series, or None
+    :param list datasets: one dict per dataset, with the keys 'name',
+        'result' (the STL fit), 'interpolated' (the regularize() mask),
+        'band_lower'/'band_upper' (regularized band Series, or None) and
+        'envelope_lower'/'envelope_upper' (rolling envelope of the seasonal
+        component, or None)
+    :param str csv_path: output file
+    :param str temporal_type: 'absolute' or 'relative'
     :param str|None statistic: 'mean' or 'median' (selects the column
         naming for the band); ignored when no band is given
-    :param pandas.Series|None envelope_lower: rolling envelope lower bound of
-        the seasonal component, or None
-    :param pandas.Series|None envelope_upper: rolling envelope upper bound of
-        the seasonal component, or None
     """
-    columns = {
-        "observed": result.observed,
-        "trend": result.trend,
-        "seasonal": result.seasonal,
-        "residual": result.resid,
-    }
-    if band_lower is not None and band_upper is not None:
-        if statistic == "mean":
-            columns["sd"] = result.observed - band_lower
-        else:
-            columns["first_quartile"] = band_lower
-            columns["third_quartile"] = band_upper
-    if envelope_lower is not None and envelope_upper is not None:
-        columns["seasonal_lower"] = envelope_lower
-        columns["seasonal_upper"] = envelope_upper
-    df = pd.DataFrame(columns)
-    df.index.name = "time_step" if temporal_type == "relative" else "date"
-    df.to_csv(csv_path)
+    frames = []
+    for dataset in datasets:
+        result = dataset["result"]
+        columns = {
+            "observed": result.observed,
+            "trend": result.trend,
+            "seasonal": result.seasonal,
+            "residual": result.resid,
+            "interpolated": dataset["interpolated"].astype(int),
+        }
+        band_lower, band_upper = dataset["band_lower"], dataset["band_upper"]
+        if band_lower is not None and band_upper is not None:
+            if statistic == "mean":
+                columns["sd"] = result.observed - band_lower
+            else:
+                columns["first_quartile"] = band_lower
+                columns["third_quartile"] = band_upper
+        if dataset["envelope_lower"] is not None:
+            columns["seasonal_lower"] = dataset["envelope_lower"]
+            columns["seasonal_upper"] = dataset["envelope_upper"]
+        df = pd.DataFrame(columns)
+        df.index.name = "time_step" if temporal_type == "relative" else "date"
+        df = df.reset_index()
+        df.insert(0, "strds", dataset["name"])
+        frames.append(df)
+    pd.concat(frames).to_csv(csv_path, index=False)
     gs.message(_("Components written to {}").format(csv_path))
+
+
+# SQL types of the trend statistics in the vector output, in column order.
+TREND_COLUMN_TYPES = {
+    "slope": "double precision",
+    "r2": "double precision",
+    "pvalue": "double precision",
+    "sen_slope": "double precision",
+    "mk_tau": "double precision",
+    "mk_pvalue": "double precision",
+    "mk_test": "varchar(16)",
+    "slope_unit": "varchar(32)",
+    "gam_change": "double precision",
+    "gam_deviance": "double precision",
+}
+
+
+def trend_statistics(trend_fit):
+    """The trend statistics of one fit, as written to the outputs.
+
+    The OLS slope, R^2 and p-value, the robust Theil-Sen slope, and the
+    Mann-Kendall tau, p-value and test variant. The slopes are in the
+    reporting unit (per day/week/month/year, or per step) named in
+    'slope_unit'. 'gam_change' and 'gam_deviance' are the GAM's net change
+    and explained deviance, when a GAM was fit.
+
+    :param dict|None trend_fit: regression as returned by fit_trend()
+    :return dict: column name (the keys of TREND_COLUMN_TYPES) -> value;
+        empty strings when ``trend_fit`` is None or for a missing GAM
+    """
+    if trend_fit is None:
+        return dict.fromkeys(TREND_COLUMN_TYPES, "")
+    gam = trend_fit.get("gam")
+    return {
+        "slope": trend_fit["slope_report"],
+        "r2": trend_fit["r2"],
+        "pvalue": trend_fit["pvalue"],
+        "sen_slope": trend_fit["sen_slope_report"],
+        "mk_tau": trend_fit["mk_tau"],
+        "mk_pvalue": trend_fit["mk_pvalue"],
+        "mk_test": trend_fit["mk_test"],
+        "slope_unit": trend_fit.get("unit_label") or "step",
+        "gam_change": gam["change"] if gam else "",
+        "gam_deviance": gam["pseudo_r2"] if gam else "",
+    }
+
+
+def segment_csv_path(csv_path):
+    """The companion segment-statistics path for the 'csv' option.
+
+    Used so a single 'csv' option can name both output files: the per-date
+    components go to 'csv_path' itself, the per-segment trend statistics
+    (when 'breakpoints' is given) to this derived path alongside it.
+
+    :param str csv_path: the 'csv' option's value
+    :return str: csv_path with '_segment' appended before its extension,
+        e.g. 'out.csv' -> 'out_segment.csv'
+    """
+    stem, ext = os.path.splitext(csv_path)
+    return "{}_segment{}".format(stem, ext)
+
+
+def write_segments_csv(datasets, csv_path):
+    """Write the trend statistics of each breakpoints= segment to a CSV file.
+
+    One row per dataset and segment: the dataset name ('strds'), the segment
+    number, the first and last time step of the fit ('start', 'end'; at the
+    ends of the series these leave out the trend_trim edges), the number of
+    observations in the fit, and the statistics of trend_statistics(),
+    without the GAM, which is only fit on the whole series.
+
+    :param list datasets: (dataset name, index of the regularized series,
+        trend_fit_segments from decompose_and_fit()) per dataset
+    :param str csv_path: output file
+    """
+    rows = []
+    for name, index, segment_fits in datasets:
+        for number, (fit, _segment_label) in enumerate(segment_fits, start=1):
+            statistics = trend_statistics(fit)
+            del statistics["gam_change"], statistics["gam_deviance"]
+            rows.append(
+                {
+                    "strds": name,
+                    "segment": number,
+                    "start": index[fit["x_start"]],
+                    "end": index[fit["x_stop"]],
+                    "n_obs": fit["x_stop"] - fit["x_start"] + 1,
+                    **statistics,
+                }
+            )
+    pd.DataFrame(rows).to_csv(csv_path, index=False)
+    gs.message(_("Segment trends written to {}").format(csv_path))
 
 
 def fit_gam(xm, ym, direction, sen_slope):
@@ -862,80 +1020,48 @@ def fit_trend(
     }
 
 
-def write_point_vector(vector, east, north, trend_fit=None):
+def write_point_vector(vector, east, north, fits):
     """Create a point vector layer at the selected (east, north) location.
 
-    When a trend regression is supplied, the OLS slope, R^2 and p-value, plus
-    the robust Theil-Sen slope and the Mann-Kendall tau, p-value and test
-    variant, are stored as attributes of the single point feature. The slope
-    values are in the chosen reporting unit (per day/week/month/year, or per
-    step), named in the ``slope_unit`` text column. When a GAM was fit, its
-    net change and explained deviance are stored too.
+    One point per dataset, all at the same location: category 1 for 'strds'
+    and 2 for 'strds2'. The attribute table holds the dataset name ('strds'
+    column) and the statistics of its whole-series trend regression (see
+    trend_statistics()).
 
     :param str vector: name of the output point vector layer
     :param float east: easting of the point
     :param float north: northing of the point
-    :param dict|None trend_fit: regression as returned by fit_trend()
+    :param list fits: (dataset name, fit_trend() dict or None) per dataset
     """
-    if trend_fit is not None:
-        gam = trend_fit.get("gam")
-        gam_change = gam["change"] if gam else ""
-        gam_dev = gam["pseudo_r2"] if gam else ""
-        unit_label = trend_fit.get("unit_label") or "step"
-        columns = [
-            "x double precision",
-            "y double precision",
-            "cat integer",
-            "slope double precision",
-            "r2 double precision",
-            "pvalue double precision",
-            "sen_slope double precision",
-            "mk_tau double precision",
-            "mk_pvalue double precision",
-            "mk_test varchar(16)",
-            "slope_unit varchar(32)",
-            "gam_change double precision",
-            "gam_deviance double precision",
-        ]
-        stdin = "{e},{n},1,{s},{r},{p},{ss},{kt},{kp},{mt},{u},{gc},{gd}\n".format(
-            e=east,
-            n=north,
-            s=trend_fit.get("slope_report", trend_fit["slope"]),
-            r=trend_fit["r2"],
-            p=trend_fit["pvalue"],
-            ss=trend_fit.get("sen_slope_report", trend_fit.get("sen_slope", "")),
-            kt=trend_fit.get("mk_tau", ""),
-            kp=trend_fit.get("mk_pvalue", ""),
-            mt=trend_fit["mk_test"],
-            u=unit_label,
-            gc=gam_change,
-            gd=gam_dev,
-        )
-        kwargs = {"columns": columns, "cat": 3}
-    else:
-        stdin = "{e},{n}\n".format(e=east, n=north)
-        kwargs = {}
+    columns = ["x double precision", "y double precision", "cat integer"]
+    columns.append("strds varchar(255)")
+    columns.extend(f"{name} {sql}" for name, sql in TREND_COLUMN_TYPES.items())
+    rows = []
+    for cat, (name, trend_fit) in enumerate(fits, start=1):
+        values = [east, north, cat, name, *trend_statistics(trend_fit).values()]
+        rows.append(",".join(str(value) for value in values))
     try:
         gs.write_command(
             "v.in.ascii",
             input="-",
             output=vector,
             separator="comma",
-            stdin=stdin,
+            columns=columns,
+            cat=3,
+            stdin="\n".join(rows) + "\n",
             overwrite=gs.overwrite(),
-            **kwargs,
         )
     except CalledModuleError:
         gs.fatal(_("Could not create point vector layer '{}'.").format(vector))
-    if trend_fit is not None:
-        # The x/y coordinate columns are only needed to import the geometry;
-        # drop them so the attribute table holds just the regression stats.
-        try:
-            gs.run_command("v.db.dropcolumn", map=vector, columns="x,y")
-        except CalledModuleError:
-            gs.warning(
-                _("Could not drop the 'x' and 'y' columns from '{}'.").format(vector)
-            )
+    # The x/y coordinate columns are only needed to import the geometry;
+    # drop them so the attribute table holds just the dataset and statistics.
+    try:
+        gs.run_command("v.db.dropcolumn", map=vector, columns="x,y")
+    except CalledModuleError:
+        gs.warning(
+            _("Could not drop the 'x' and 'y' columns from '{}'.").format(vector)
+        )
+    gs.vector_history(vector)
     gs.message(_("Created point vector layer '{}'.").format(vector))
 
 
@@ -1056,6 +1182,27 @@ def format_segment_label(series_index, start, stop, temporal_type):
     return " ({}..{})".format(pd.Timestamp(first).date(), pd.Timestamp(last).date())
 
 
+def warn_long_gap(longest_gap, period, prefix=""):
+    """Warn when an interpolated gap spans at least one seasonal cycle.
+
+    Over such a gap, the seasonal component STL returns is drawn from the
+    interpolated values only, so it shows no observed seasonal cycle.
+
+    :param int longest_gap: the longest run of interpolated steps
+    :param int period: the seasonal period, in steps
+    :param str prefix: message prefix (dataset label), or empty
+    """
+    if longest_gap >= period:
+        gs.warning(
+            _(
+                "{pre}The longest interpolated gap ({g} steps) spans at least "
+                "one seasonal period ({p} steps); the seasonal component over "
+                "that gap is interpolated, not observed. Use 'max_gap' to "
+                "refuse such gaps."
+            ).format(pre=prefix, g=longest_gap, p=period)
+        )
+
+
 def decompose_and_fit(
     regular,
     period_opt,
@@ -1074,6 +1221,7 @@ def decompose_and_fit(
     envelope_percentile=None,
     breakpoints_opt=None,
     mk_test="kendall",
+    longest_gap=0,
 ):
     """Run STL and the trend regressions on one regularized series, with reporting.
 
@@ -1110,11 +1258,14 @@ def decompose_and_fit(
         the GAM curve, if requested, is still fit on the whole series (it is
         not meant to be forced through artificial kinks).
     :param str mk_test: the mk_test= option ('kendall' or a key of MK_TESTS)
+    :param int longest_gap: the longest run of interpolated steps in
+        ``regular`` (series.longest_gap()), to warn when it spans a full
+        seasonal cycle
 
     :return tuple: (result, trend_fit, trend_fit_segments, envelope_lower,
         envelope_upper) where result is the STL fit, trend_fit is the
         whole-series fit_trend() dict (or None) -- always computed, since
-        write_csv()/write_point_vector() and the GAM curve use it regardless
+        write_point_vector() and the GAM curve use it regardless
         of breakpoints_opt -- trend_fit_segments is a list of (fit_trend()
         dict, label) pairs, one per segment, or None when breakpoints_opt
         was not given, and envelope_lower/envelope_upper are the rolling
@@ -1137,7 +1288,8 @@ def decompose_and_fit(
                 "smaller period."
             ).format(pre=prefix, p=period, n=len(regular))
         )
-    gs.message(
+    warn_long_gap(longest_gap, period, prefix)
+    gs_step(
         _("{pre}Running STL decomposition (period={p})...").format(pre=prefix, p=period)
     )
     result = run_stl(series=regular, period=period, **stl_kwargs)
@@ -1220,8 +1372,9 @@ def decompose_and_fit(
     )
     trend_fit_segments = None
     if breakpoint_positions:
+        segments = build_segments(n, breakpoint_positions)
         trend_fit_segments = []
-        for seg_start, seg_stop in build_segments(n, breakpoint_positions):
+        for seg_number, (seg_start, seg_stop) in enumerate(segments, start=1):
             seg_label = format_segment_label(
                 deseasonalized.index, seg_start, seg_stop, temporal_type
             )
@@ -1247,25 +1400,23 @@ def decompose_and_fit(
                     ).format(pre=prefix, label=seg_label, n=n_seg, m=MIN_SEGMENT_OBS)
                 )
             trend_fit_segments.append((seg_fit, seg_label))
+            # A '---' divider opens every segment block (including the
+            # first, setting it apart from the whole-series messages above)
+            # and, after the loop, closes the last one too.
+            gs.message("---")
+            # The date/step range is reported once, in this header; the
+            # OLS/Theil-Sen lines below only add what differs per line (they
+            # used to repeat it too, making a run with several segments much
+            # longer to read than the numbers in it warranted).
             gs.message(
-                _(
-                    "{pre}Trend segment{label}: fitted on {n} observations "
-                    "(indices {a}-{b})."
-                ).format(
-                    pre=prefix,
-                    label=seg_label,
-                    n=n_seg,
-                    a=seg_fit["x_start"],
-                    b=seg_fit["x_stop"],
+                _("{pre}Trend segment {i}{label}:").format(
+                    pre=prefix, i=seg_number, label=seg_label
                 )
             )
             if show_ols:
                 gs.message(
-                    _(
-                        "{pre}Trend{label} (OLS): slope={s}, R^2={r:.3f}, p={p:.3g}"
-                    ).format(
+                    _("{pre}  OLS: slope={s}, R^2={r:.3f}, p={p:.3g}").format(
                         pre=prefix,
-                        label=seg_label,
                         s=format_slope(seg_fit["slope_report"], unit_label),
                         r=seg_fit["r2"],
                         p=seg_fit["pvalue"],
@@ -1273,21 +1424,18 @@ def decompose_and_fit(
                 )
             if show_sen:
                 gs.message(
-                    _(
-                        "{pre}Trend{label} (Theil-Sen / {m}): slope={s}, "
-                        "tau={t:.3f}, p={p:.3g}"
-                    ).format(
+                    _("{pre}  Theil-Sen ({m}): slope={s}, tau={t:.3f}, p={p:.3g}").format(
                         pre=prefix,
-                        label=seg_label,
                         m=mk_name(mk_test),
                         s=format_slope(seg_fit["sen_slope_report"], unit_label),
                         t=seg_fit["mk_tau"],
                         p=seg_fit["mk_pvalue"],
                     )
                 )
+        gs.message("---")
 
     # Whole-series fit: always computed, regardless of breakpoints_opt --
-    # write_csv()/write_point_vector() report it unconditionally, and the
+    # write_point_vector() reports it unconditionally, and the
     # GAM curve (if requested) is only ever fit over the whole series.
     trend_fit = fit_trend(
         deseasonalized,

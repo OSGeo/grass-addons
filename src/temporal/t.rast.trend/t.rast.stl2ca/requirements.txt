@@ -1,0 +1,9 @@
+matplotlib
+numpy
+# format="mixed" in pandas.to_datetime
+pandas>=2.0
+scipy
+# STL
+statsmodels>=0.11
+# Optional: plotly for the interactive HTML plot (-i), and pymannkendall for
+# an mk_test other than 'kendall'.

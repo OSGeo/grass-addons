@@ -61,7 +61,7 @@ over an area, defined either by a vector map (<b>zone</b>) or a raster map
 (<b>raster</b>). These three options are mutually exclusive.
 
 <p>
-The point is given with <b>coordinates=east,north</b> in the coordinate system
+<b>coordinates=east,north</b> defines the point, always in the coordinate system
 of the current GRASS project. When the module dialog is launched from within the
 GRASS GUI, the coordinates field can also be filled by clicking a location in
 the map display (when launched from the terminal, clicking a location will not
@@ -77,22 +77,25 @@ cell is pooled into a single sample, the raster counterpart of <b>zone</b>. The
 map can be of any type (CELL, FCELL or DCELL).
 
 <p>
-Either way, the module respects the <i>current computational region</i>'s
-resolution. Set the region with <i><a href="g.region.md">g.region</a></i> before
-running if needed. The point, or at least part of the zone or raster, must fall
-inside the current region.
+The module respects the <i>current computational region</i>'s resolution. Set
+the region with <i><a href="g.region.md">g.region</a></i> before running if
+needed. The point, or at least part of the zone or raster, must fall inside the
+current region.
 
 <p>
 With <b>zone</b> or <b>raster</b>, the per-timestep pixel values within the area
 are summarized by <b>statistic</b>: <tt>mean</tt> (the default),
 <tt>median</tt>, <tt>min</tt>, <tt>max</tt> or <tt>percentile</tt>.
 <tt>percentile</tt> requires <b>percentile_value</b> (0-100). Note that
-<tt>median</tt> and <tt>percentile</tt> require t.rast.univar's
+<tt>median</tt> and <tt>percentile</tt> require <i>t.rast.univar</i>'s
 extended-statistics mode, which can require a lot of memory if used with large
-rasters. The <b>-d</b> flag additionally shades a band around the Observed
-series showing the spread of pixel values at each timestep: ±1 standard
-deviation for <tt>mean</tt>, or the interquartile range (25th-75th percentile)
-for <tt>median</tt>. It is only valid with <tt>statistic=mean</tt> or
+rasters.
+
+<p>
+The <b>-d</b> flag additionally shades a band around the Observed series showing
+the spread of pixel values at each timestep: ±1 standard deviation for
+<tt>mean</tt>, or the interquartile range (25th-75th percentile) for
+<tt>median</tt>. It is only valid with <tt>statistic=mean</tt> or
 <tt>statistic=median</tt>. Gaps in the band (missing timesteps, or dates
 excluded by <b>temporal_outliers</b>) are always filled by linear interpolation,
 regardless of the <b>interpolation</b> option, so a curvature-fitting method
@@ -117,13 +120,13 @@ four panels (Observed, Trend, Seasonal, Residual).
 <p>
 By default, the first dataset is plotted against the left y-axis and the second
 against its own twin right y-axis on each panel, so two quantities with very
-different units or ranges (for example temperature and precipitation) can be
+different units or ranges (for example, temperature and precipitation) can be
 compared on a shared time axis. The two series are distinguished by color, with
 the y-axis tick numbers colored to match and a single legend in the Observed
 panel naming each dataset. But, when the two datasets are in comparable units,
-the <b>-y</b> flag forces them onto a single common y-axis range per panel
-(instead of separate left/right axes), so their magnitudes can be read directly
-against one another. This flag has no effect unless <b>strds2</b> is given.
+the <b>-y</b> flag forces them onto a single common y-axis range per panel,
+making the values directly comparable. This flag has no effect unless
+<b>strds2</b> is given.
 
 <p>
 The trend regression lines requested with <b>-o</b>, <b>-s</b> and <b>-g</b> are
@@ -158,7 +161,7 @@ the x-axis is labelled "Time step".
 <h3>Regularization</h3>
 
 STL requires an evenly spaced, gap-free series. The series is therefore
-resampled onto a regular axis and any gaps are then filled in. Three options
+resampled onto a regular axis and any gaps are then filled in. Four options
 control this:
 
 <p>
@@ -191,6 +194,17 @@ distance between observations. For the other options, <tt>nearest</tt>,
 function, which this module uses for the gap filling.
 
 <p>
+Only gaps between observations are filled. Steps before the first and after the
+last observation, e.g., when the dataset starts or ends with NULL maps, are left
+out, so the series used covers the observed period only. The module reports the
+number of left-out steps, the number of interpolated steps, and the length of
+the longest gap. A warning is given when a gap spans one seasonal period or
+more, as the seasonal component over that gap is then interpolated rather than
+observed. <b>max_gap</b> sets the longest run of consecutive missing steps that
+may be interpolated; a longer gap stops the module with the dates of that gap.
+By default, gaps of any length are interpolated.
+
+<p>
 You will normally want to make sure the <b>frequency</b> (or <b>step</b>)
 matches the real sampling of your data. If these are not matching, your data
 will be resampled. For example, setting data that is actually 16-day composites
@@ -200,50 +214,58 @@ series.
 <p>
 <b>temporal_outliers</b> (and <b>temporal_outliers2</b> for <tt>strds2</tt>)
 detects and excludes short-lived spikes and dips before the analysis. It takes
-<tt>threshold,window</tt>. The <b>threshold</b> sets the minimum deviation from
-the local median (in the data's own units, e.g., 0.3 NDVI units), and
-<b>window</b> defines the period used to detect the spike (calendar days for
-absolute-time data, time steps for relative-time data). An observation is
-excluded only if it deviates from the median of neighbouring observations by at
-least <b>threshold</b> and returns close to that level within <b>window</b>.
-Sustained changes are retained, as they may represent genuine environmental
-changes. Excluded observations are treated as missing and always filled by
-linear interpolation (regardless of <b>interpolation</b>, which still governs
-genuine gaps) before STL decomposition and trend regression. This is done
-because an excursion can span many steps, and a curvature-fitting method
-bridging a gap that wide can overshoot past either neighbor, undoing the whole
-point of excluding the outlier by replacing it with a different, possibly larger
-artefact. Excluded observations are shown as lighter-colored markers in the
-Observed panel, unless <b>-e</b> is given, in which case the markers are left
-out and the Observed panel's y-axis autoscales to the gap-filled series alone,
-rather than being stretched to also fit the excluded values. The excluded
-outliers are also excluded whe computing the pixel-value spread band
-(<b>-d</b>), so it does not keep showing the raw spread at an excluded date
-either.
+<tt>threshold,window</tt>: <b>threshold</b> is the minimum size of an excursion,
+in the data's own units (e.g., 0.3 NDVI units), and <b>window</b> the longest
+time it may last (calendar days for absolute-time data, time steps for
+relative-time data).
+
+<p>
+Dips are found by following the series in time while keeping track of the
+highest value reached so far (the running peak). Once the series falls below
+that peak, the following observations belong to a possible dip, until the series
+comes back to within half the <b>threshold</b> of the peak. If it comes back
+within <b>window</b> of the peak, and the lowest value in between is at least
+<b>threshold</b> below the peak, the observations between the peak and the
+return are excluded. Shallower dips are kept. A drop that does not come back
+within <b>window</b>, or that is still open at the end of the series, is kept as
+a possibly genuine, sustained change, and the running peak starts again from
+there. Spikes are found in the same way, with a running trough.
+
+<p>
+Excluded observations are treated as missing and always filled by linear
+interpolation in time (regardless of <b>interpolation</b>, which governs the
+other gaps) before STL decomposition and trend regression. An excursion can span
+many steps, and a curvature-fitting method bridging a gap that wide can
+overshoot past either neighbor, replacing the outlier with a different, possibly
+larger artefact. Excluded observations are shown as lighter-colored markers in
+the Observed panel, unless <b>-e</b> is given, in which case the markers are
+left out and the Observed panel's y-axis autoscales to the gap-filled series
+alone, rather than being stretched to also fit the excluded values. The excluded
+outliers are also excluded when computing the pixel-value spread band
+(<b>-d</b>).
 
 <p>
 The option to exclude outliers can help to identify potential data artefacts,
 such as cloud contamination or sensor errors, that STL's robust fitting
 (<b>-r</b>) and the Theil-Sen trend estimator (<b>-s</b>) may not adequately
-handle. HOwever, use it with caution. Rapid changes can also be genuine, and
+handle. However, use it with caution. Rapid changes can also be genuine, and
 removing observations can affect estimated trends and their statistical
 significance, particularly in short time series. Choose the <b>threshold</b> and
 <b>window</b> based on the expected behavior of the data, not to obtain a
-particular result. Always inspect the excluded observations, justify the chosen
-settings, and preferably compare results with and without filtering to avoid
-inadvertently introducing bias or <i>p-hacking</i>.
+particular result. Avoid introducing bias or <i>p-hacking</i>.
 
 <h3>Decomposition (STL)</h3>
 
 The decomposition wraps <tt>statsmodels.tsa.seasonal.STL</tt>. Its most
 important parameter is <b>period</b>, which is tied to the regularized frequency
 (or, for relative-time data, the step / granularity). It is the number of
-observations in one full seasonal cycle. For example 12 for monthly data, 23 for
-a 16-day composite series (≈ 365 / 16), or 365 for daily data with an annual
+observations in one full seasonal cycle. For example, 12 for monthly data, 23
+for a 16-day composite series (≈ 365 / 16), or 365 for daily data with an annual
 cycle. If <b>period</b> is not given, it is estimated from the resampled
-frequency (or, for relative-time data, the dataset granularity). Set it
-explicitly whenever you are unsure the inference will be right, or when your
-cycle is not annual.
+frequency (or, for relative-time data, the dataset granularity): an annual cycle
+for daily and longer steps, and a daily cycle for hourly and shorter steps
+(e.g., 24 for hourly data). Set it explicitly whenever you are unsure the
+inference will be right, or when your cycle is different.
 
 <p>
 The remaining STL options fine-tune the LOESS smoothers. For users familiar with
@@ -311,10 +333,10 @@ With <b>csv</b>, the envelope is written as
 
 <h3>Trend lines</h3>
 
-Beyond the visual decomposition, the tool can quantify the long-term change by
-fitting regressions to the <b>deseasonalized observed</b> series and drawing
-them on the trend panel. The deseasonalized series is <tt>trend + residual</tt>,
-which is equivalent to <tt>observed - seasonal</tt>.
+The tool can quantify the long-term change by fitting regressions to the
+<b>deseasonalized observed</b> series and drawing them on the trend panel. The
+deseasonalized series is <tt>trend + residual</tt>, which is equivalent to
+<tt>observed - seasonal</tt>.
 
 <p>
 Three fits are available. The first is an ordinary least-squares (OLS) line,
@@ -353,18 +375,18 @@ autocorrelation.
 
 <p>
 The third fit, enabled with <b>-g</b>, is a <b>Generalized Additive Model</b>
-fitted with <a href="https://pygam.readthedocs.io/">pyGAM</a>: a smooth,
-flexible curve. By default it is shape-constrained to a monotone curve that
-never reverses direction; the <b>gam_direction</b> option sets the constraint
-direction: <tt>increasing</tt>, <tt>decreasing</tt>, <tt>auto</tt> (the default,
-which picks the direction from the sign of the Theil-Sen slope), or
-<tt>none</tt>, which fits an unconstrained curve free to change direction, with
-its smoothing chosen by cross-validation. The GAM is summarized by its <b>net
-change</b> (fitted value at the last point minus the first, over the fitted
-span) and the <b>explained deviance</b>; for an unconstrained (<tt>none</tt>)
-fit, net change describes only the overall shift between the endpoints, not the
-shape of the curve in between. The <b>-b</b> flag additionally shades the GAM's
-95% confidence band.
+fitted with <a href="https://pygam.readthedocs.io/">pyGAM</a>. This gives you a
+smooth, flexible curve. By default it is shape-constrained to a monotone curve
+that never reverses direction; the <b>gam_direction</b> option sets the
+constraint direction: <tt>increasing</tt>, <tt>decreasing</tt>, <tt>auto</tt>
+(the default, which picks the direction from the sign of the Theil-Sen slope),
+or <tt>none</tt>, which fits an unconstrained curve free to change direction.
+For the latter, smoothing is chosen by cross-validation. The GAM is summarized
+by its <b>net change</b> (fitted value at the last point minus the first, over
+the fitted span) and the <b>explained deviance</b>. Note that for an
+unconstrained (<tt>none</tt>) fit, net change describes only the overall shift
+between the endpoints, not the shape of the curve in between. The <b>-b</b> flag
+additionally shades the GAM's 95% confidence band.
 
 <p>
 Which line(s) appear on the trend panel is controlled by flags: <b>-o</b> draws
@@ -417,10 +439,11 @@ option splits the OLS/Theil-Sen fit into separate segments instead: one or more
 dates (absolute-time) or time steps (relative-time), each starting a new
 segment, with the series' own start and end as the outer boundaries. Each
 segment is reported and drawn with its own slope/R²/<i>p</i>, labelled by its
-date (or step) range. Note that this option is ignored used for The GAM curve
-(<b>-g</b>). Combine <b>breakpoints</b> with matching <b>vlines</b> values to
-also mark them on the plot. A segment left with too few observations after
-trimming (fewer than 4) is rejected with an error naming it.
+date (or step) range, and, with <b>csv</b> also given, these results are written
+to a companion CSV file (see <b>csv</b> below). The GAM curve (<b>-g</b>) is
+still fitted on the whole series. Combine <b>breakpoints</b> with matching
+<b>vlines</b> values to also mark them on the plot. A segment left with too few
+observations after trimming (fewer than 4) is rejected with an error naming it.
 
 <h3>Vertical reference lines</h3>
 
@@ -466,22 +489,35 @@ only if your system needs a different interactive backend (e.g. <tt>TkAgg</tt>,
 <p>
 The <b>csv</b> option additionally writes the observed, trend, seasonal and
 residual components per date, so they can be replotted or analysed in your
-software tool of choice. With <b>zone</b> or <b>raster</b> and <b>-d</b>, the
-dispersion band is included too: a <tt>sd</tt> column for
-<tt>statistic=mean</tt>, or <tt>first_quartile</tt>/ <tt>third_quartile</tt>
-columns for <tt>statistic=median</tt>. With <b>seasonal_envelope</b>, the
-seasonal amplitude envelope is included as
-<tt>seasonal_lower</tt>/<tt>seasonal_upper</tt> columns.
+software tool of choice. It has one row per dataset and date, with the dataset
+name in the <tt>strds</tt> column, so with <b>strds2</b> both datasets are in
+the same file. The <tt>interpolated</tt> column is 1 where the date had no
+observation and the value was interpolated, and 0 otherwise. With <b>zone</b> or
+<b>raster</b> and <b>-d</b>, the dispersion band is included too: a <tt>sd</tt>
+column for <tt>statistic=mean</tt>, or
+<tt>first_quartile</tt>/<tt>third_quartile</tt> columns for
+<tt>statistic=median</tt>. With <b>seasonal_envelope</b>, the seasonal amplitude
+envelope is included as <tt>seasonal_lower</tt>/<tt>seasonal_upper</tt> columns.
 
 <p>
-The <b>vector</b> option creates a point vector layer carrying the trend
-regression results (OLS slope, R², <i>p</i>-value, Theil-Sen slope, Mann-Kendall
-tau and <i>p</i>-value, and the <b>mk_test</b> variant used) as attributes. When
-a GAM was fitted (<b>-g</b>), its net change and explained deviance are stored
-as well. With <b>coordinates</b> the point is at the selected location; with
-<b>zone</b> or <b>raster</b> it is placed at the center of the zone's or
-raster's bounding box (a tag for the location, not a geometry derived from the
-area itself).
+When <b>breakpoints</b> is also given, the trend regression of each segment is
+written to a second CSV file alongside <b>csv</b>, named after it with
+<tt>_segment</tt> appended before the extension (<i>csv=out.csv</i> writes
+<tt>out_segment.csv</tt>). It has one row per dataset and segment: the dataset
+(<tt>strds</tt>), the segment number, the first and last date of the regression
+(<tt>start</tt>, <tt>end</tt>), the number of observations (<tt>n_obs</tt>), and
+the same statistics as the <b>vector</b> attributes, except the GAM.
+
+<p>
+The <b>vector</b> option creates a point vector layer carrying the whole-series
+trend regression results (OLS slope, R², <i>p</i>-value, Theil-Sen slope,
+Mann-Kendall tau and <i>p</i>-value, the <b>mk_test</b> variant used, and the
+slope unit) as attributes. When a GAM was fitted (<b>-g</b>), its net change and
+explained deviance are stored as well. There is one point per dataset, with the
+dataset name in the <tt>strds</tt> column: category 1 for <b>strds</b> and 2 for
+<b>strds2</b>. With <b>coordinates</b> the points are at the selected location;
+with <b>zone</b> or <b>raster</b> they are placed at the center of the zone's or
+raster's bounding box.
 
 <h3>Subsetting and performance</h3>
 
@@ -494,8 +530,7 @@ The <b>nprocs</b> option sets the number of parallel processes used during
 sampling: by <i><a href="t.rast.what.md">t.rast.what</a></i> for a point
 (<b>coordinates</b>), or by
 <i><a href="t.rast.univar.md">t.rast.univar</a></i>'s zonal extraction for an
-area (<b>zone</b> or <b>raster</b>), potentially making the module substantially
-faster to run.
+area (<b>zone</b> or <b>raster</b>).
 
 <h3>Acknowledgement</h3>
 

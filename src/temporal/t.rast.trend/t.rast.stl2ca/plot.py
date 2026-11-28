@@ -4,7 +4,7 @@
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Plotting for t.rast.stl2ca: the multi-panel STL figure drawn
 #               for every category of a classification, each in its own
-#               color, plus the vlines= parser.
+#               color.
 #
 # COPYRIGHT:    (c) 2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -15,9 +15,9 @@
 
 """Plotting (Matplotlib) for t.rast.stl2ca.
 
-np/pd/mpl/plt are set by t.rast.stl2ca.lazy_import_py_modules() -- after GRASS
+np/mpl/plt are set by t.rast.stl2ca.lazy_import_py_modules() -- after GRASS
 parses the command line -- rather than imported here, so a plain module scan
-(--help, g.extension) never needs numpy/pandas/matplotlib installed.
+(--help, g.extension) never needs numpy/matplotlib installed.
 """
 
 import os
@@ -29,76 +29,8 @@ if not callable(globals().get("_")):
 
 # Set by t.rast.stl2ca.lazy_import_py_modules() before any function below runs.
 np = None
-pd = None
 mpl = None
 plt = None
-
-
-def apply_style(style):
-    """Apply a Matplotlib style sheet: either a built-in style name, or the
-    path to a custom .mplstyle file (e.g. to set 'axes.linewidth' thinner
-    than any built-in style does).
-
-    :param str style: name of a built-in Matplotlib style, or a path to a
-        custom style file
-    """
-    if not style:
-        return
-    if style not in plt.style.available and not os.path.isfile(style):
-        gs.fatal(
-            _(
-                "'{}' is neither a built-in style ({}) nor an existing "
-                "file. A custom style is given as the path to a "
-                ".mplstyle file."
-            ).format(style, ", ".join(plt.style.available))
-        )
-    plt.style.use(style)
-
-
-def parse_vlines(vlines_opt, labels_opt, temporal_type):
-    """Parse the vlines/vlines_labels options into plot-ready positions.
-
-    :param str vlines_opt: comma separated dates (absolute time) or integer
-        time steps (relative time); may be empty
-    :param str labels_opt: comma separated labels, in the same order and
-        count as vlines_opt; may be empty (no labels)
-    :param str temporal_type: 'absolute' or 'relative'
-    :return list: list of (position, label|None) tuples, position being a
-        pandas.Timestamp (absolute) or int (relative)
-    """
-    if not vlines_opt:
-        return []
-    raw_values = [v.strip() for v in vlines_opt.split(",") if v.strip()]
-    positions = []
-    for value in raw_values:
-        if temporal_type == "relative":
-            try:
-                positions.append(int(value))
-            except ValueError:
-                gs.fatal(
-                    _(
-                        "Could not parse 'vlines' value '{}' as an integer time step."
-                    ).format(value)
-                )
-        else:
-            try:
-                positions.append(pd.to_datetime(value))
-            except (ValueError, TypeError):
-                gs.fatal(
-                    _("Could not parse 'vlines' value '{}' as a date.").format(value)
-                )
-
-    labels = [label.strip() for label in labels_opt.split(",")] if labels_opt else []
-    if labels and len(labels) != len(positions):
-        gs.fatal(
-            _(
-                "'vlines_labels' must have the same number of values as "
-                "'vlines' ({labels} vs {vlines})."
-            ).format(labels=len(labels), vlines=len(positions))
-        )
-    if not labels:
-        labels = [None] * len(positions)
-    return list(zip(positions, labels))
 
 
 def category_colors(colormap, n):

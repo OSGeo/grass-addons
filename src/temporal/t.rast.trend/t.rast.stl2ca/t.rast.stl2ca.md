@@ -77,11 +77,10 @@ category's raw value (**raster**) or its label (the **column** value, or the
 raster's own category label if it has one). For example *categories=1,3* or
 *categories=forest,water*.
 
-Either way, the module samples at the *current computational region*'s
-resolution. Set the region with *[g.region](g.region.md)* before running if
-needed. A category with no overlap with the current region, or no non-null
-data at any registered timestep, is skipped with a warning rather than
-aborting the whole run.
+The module respects the *current computational region*'s resolution. Set the
+region with *[g.region](g.region.md)* before running if needed. A category with
+no overlap with the current region, or no non-null data at any registered
+timestep, is skipped with a warning.
 
 The per-timestep pixel values within a category are summarized by
 **statistic**: `mean` (the default), `median`, `min`, `max` or `percentile`.
@@ -135,14 +134,12 @@ interactive plot has the following features:
   entry again removes it from the highlight.
 - Dragging across any panel zooms into that time range. Double-click to reset
   the zoom.
-- Hovering any panel shows the date and category's value at that
-  point, and draws a crosshair through every panel at that date.
-- A "Trend statistics" tab in the top-left corner opens a sidebar holding
-  the same table **stats_output** writes to a file (see below), whether or
-  not **stats_output** is actually given.
+- Hovering any panel shows the date and category's value at that point, and
+  draws a crosshair through every panel at that date.
+- A "Trend statistics" tab in the top-left corner opens a sidebar holding the
+  same table **stats_output** writes to a file (see below), whether or not
+  **stats_output** is actually given.
 
-**plots**, **-d**, **-s**, **seasonal_envelope**, **vlines**, **colormap**,
-**title**, **line_width** and **fontsize** all carry over unchanged.
 **backend**, **dpi**, **plot_dimensions** and **style** are Matplotlib-only and
 are ignored for the HTML plot with a warning.
 
@@ -155,7 +152,7 @@ the x-axis is labelled "Time step".
 ### Regularization
 
 STL requires an evenly spaced, gap-free series. The series is therefore
-resampled onto a regular axis, and any gaps are then filled in. Three options
+resampled onto a regular axis, and any gaps are then filled in. Four options
 control this:
 
 **frequency** sets the spacing of the regular axis for absolute-time datasets.
@@ -182,6 +179,16 @@ observations. For the other options, `nearest`, `pchip`, `akima`, `cubic`,
 [Series.interpolate](https://pandas.pydata.org/docs/reference/api/pandas.Series.interpolate.html)
 function, which this module uses for the gap filling.
 
+Only gaps between observations are filled. Steps before the first and after the
+last observation, e.g., when the dataset starts or ends with NULL maps, are left
+out, so the analysed series covers the observed period only. The module reports
+the number of left-out steps, the number of interpolated steps, and the length
+of the longest gap. A warning is given when a gap spans one seasonal period or
+more, as the seasonal component over that gap is then interpolated rather than
+observed. **max_gap** sets the longest run of consecutive missing
+steps that may be interpolated; a longer gap stops the module with the dates of
+that gap. By default, gaps of any length are interpolated.
+
 You will normally want to make sure the **frequency** (or **step**) matches the
 real sampling of your data. If these are not matching, your data will be
 resampled. For example, setting data that is actually 16-day composites to `D`
@@ -189,15 +196,16 @@ resampled. For example, setting data that is actually 16-day composites to `D`
 
 ### Decomposition (STL)
 
-The decomposition wraps `statsmodels.tsa.seasonal.STL`, run with the same
-settings on every category. Its most important parameter is **period**, which
-is tied to the regularized frequency (or, for relative-time data, the step /
-granularity). It is the number of observations in one full seasonal cycle.
-For example 12 for monthly data, 23 for a 16-day composite series (≈ 365 /
-16), or 365 for daily data with an annual cycle. If **period** is not given it
-is estimated from the resampled frequency (or, for relative-time data, the
-dataset granularity). Set it explicitly whenever you are unsure the inference
-will be right, or when your cycle is not annual.
+The decomposition wraps `statsmodels.tsa.seasonal.STL`. Its most important
+parameter is **period**, which is tied to the regularized frequency (or, for
+relative-time data, the step / granularity). It is the number of observations in
+one full seasonal cycle. For example, 12 for monthly data, 23 for a 16-day
+composite series (≈ 365 / 16), or 365 for daily data with an annual cycle. If
+**period** is not given, it is estimated from the resampled frequency (or, for
+relative-time data, the dataset granularity): an annual cycle for daily and
+longer steps, and a daily cycle for hourly and shorter steps (e.g., 24 for
+hourly data). Set it explicitly whenever you are unsure the inference will be
+right, or when your cycle is different.
 
 The remaining STL options fine-tune the LOESS smoothers. For users familiar with
 [R's stl()](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/stl.html)
@@ -215,7 +223,7 @@ bend more. If left empty, statsmodels derives a default from the period and
 seasonal window. The equivalent parameter in R's stl() function is `t.window`.
 
 **low_pass**: length of the low-pass smoother (odd integer ≥ 3). This is an
-internal step separating season from trend; the default (the smallest odd number
+internal step separating season from trend. The default (the smallest odd number
 larger than **period**) is almost always fine. The equivalent parameter in R's
 stl() function is `l.window`.
 
@@ -252,17 +260,19 @@ as a gap rather than computed from a partial window.
 
 ### Trend line and statistics
 
-Beyond the visual decomposition, the tool quantifies the long-term change in
-each category by fitting a robust Theil-Sen regression (SciPy's
-[theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html))
-to its **deseasonalized observed** series (`trend + residual`, equivalently
-`observed - seasonal`), reported with its slope and a monotonic-trend *p*-value
-from Kendall's rank-correlation test (SciPy's
-[kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
-This is equivalent to a tie-corrected Mann-Kendall test, except that it does not
-apply the continuity correction, so the *p*-values may differ slightly from
-those of other Mann-Kendall implementations.
+The tool can quantify the long-term change by fitting regressions to the
+**deseasonalized observed** series and drawing them on the trend panel. The
+deseasonalized series is `trend + residual`, which is equivalent to
+`observed - seasonal`.
 
+Three fits are available. The first is an ordinary least-squares (OLS) line,
+reported with its **slope** and **R²**. The second is a robust Theil-Sen line
+(SciPy's
+[theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html)),
+reported with its slope and a monotonic-trend *p*-value from Kendall's
+rank-correlation test (SciPy's
+[kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
+This option is more resistant to outliers and does not assume normal residuals.
 The **mk_test** option offers variants that correct for serial autocorrelation,
 computed with the [pymannkendall](https://github.com/mmhs013/pyMannKendall)
 package:
@@ -368,13 +378,12 @@ system needs a different interactive backend (e.g., `TkAgg`, `Qt5Agg`).
 
 **stats_output**, when given, writes the Theil-Sen/Kendall trend statistics
 (slope, tau, p-value, the **mk_test** variant, the reporting unit, number of
-observations fitted) to a
-CSV file, one row per category, and one row per **breakpoints** segment, when
-given, in addition to the whole-series row. This is independent of **-s**: the
-statistics are computed either way, this option just decides whether they are
-written out. With **-i**, the same table is also always shown in the HTML
-output, in a sidebar opened from the "Trend statistics" tab (see "Interactive
-plot" above), whether or not **stats_output** is given.
+observations fitted) to a CSV file, one row per category, and one row per
+**breakpoints** segment, when given, in addition to the whole-series row. This
+is independent of **-s**: the statistics are computed either way, this option
+just decides whether they are written out. With **-i**, the same table is also
+always shown in the HTML output, in a sidebar opened from the "Trend statistics"
+tab (see "Interactive plot" above), whether or not **stats_output** is given.
 
 ### Subsetting and performance
 
@@ -384,18 +393,14 @@ particular range of years. Note that in the interactive plot, you can plot the
 whole range and select the range you are interested in in the plot (see above).
 
 The **nprocs** option sets the number of parallel processes
-*[t.rast.univar](t.rast.univar.md)* uses for the zonal extraction, which
-covers every category in one call; this can make the module substantially
-faster to run, but setting it higher than the number of CPU cores available
-just adds contention rather than speed. The main per-run cost is
-*t.rast.univar* itself, which runs once per registered map in **strds**
-(filtered by **where**, if given): a strds with very many registered maps
-can take a while regardless of region size or category count, since the
-dominant cost is then the number of maps, not the number of pixels. The
-module automatically shrinks the region it samples at to the categories' own
-extent first (see "The categories" above), which helps substantially when
-the categories occupy only a small part of a much larger current region, but
-does not reduce the per-map cost of a strds with many registered maps.
+*[t.rast.univar](t.rast.univar.md)* uses for the zonal extraction, which covers
+every category in one call. Be careful not to set this higher than the number of CPU cores
+available.
+
+The module automatically shrinks the region it samples at to the categories' own
+extent first (see "The categories" above), which mostly helps when the
+categories occupy only a small part of a much larger current region. But note
+that it can still take long time when there are many maps.
 
 ## NOTES
 

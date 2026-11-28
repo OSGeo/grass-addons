@@ -17,7 +17,7 @@
 #############################################################################
 
 # %module
-# % description: STL decomposition (seasonal/trend/remainder) of time series of selected point
+# % description: STL decomposition (seasonal/trend/remainder) of the time series of a point or an area
 # % keyword: temporal
 # % keyword: raster
 # % keyword: time series
@@ -123,10 +123,19 @@
 # %end
 
 # %option
+# % key: max_gap
+# % type: integer
+# % label: Maximum gap length
+# % description: Longest run of consecutive missing steps on the regularized time axis that may be interpolated. A longer gap stops the module. Default is unset is no limit.
+# % required: no
+# % guisection: Regularization
+# %end
+
+# %option
 # % key: temporal_outliers
 # % type: string
 # % label: Temporal-outlier filter for 'strds'
-# % description: 'threshold,window' flags and excludes isolated, transient excursions before the analysis, tracking a running peak (or trough) and following the signal away from it, the same running-extremum approach t.rast.event uses to detect disturbance/recovery events. A descent (or ascent) is confirmed, and its entire span excluded, once it has moved at least 'threshold' away from that running reference (in the data's own units, e.g. 0.3 NDVI units) and the series is then seen to come back close to the reference again, within 'window' of leaving it (calendar days for absolute time, time steps for relative time) -- as opposed to a genuine, sustained change, which is left untouched. The removed values are dropped before STL/trend, filled in like any other gap, and still marked on the Observed panel. See the manual for the full rule.
+# % description: 'threshold,window' flags and excludes isolated, transient excursions before the analysis, tracking a running peak (or trough) and following the signal away from it. A descent (or ascent) is confirmed, and its entire span excluded, once it has moved at least 'threshold' away from that running reference in the data's own units and the series is then seen to come back close to the reference again, within 'window' of leaving it (calendar days for absolute time, time steps for relative time). The removed values are filled by linear interpolation in time before STL/trend, and still marked on the Observed panel.
 # % required: no
 # % guisection: Regularization
 # %end
@@ -330,7 +339,7 @@
 # % key: breakpoints
 # % type: string
 # % label: Trend regression breakpoints
-# % description: Date(s) (absolute-time strds) or time step(s) (relative-time strds) splitting the trend regression into separate segments, e.g. to report the slope before and after a known change rather than one slope that averages over it. Each value starts a new segment; the series' own start and end always count as the outer segment boundaries. Comma separated for multiple breakpoints. Only the OLS/Theil-Sen lines (-o/-s) are fit per segment; the GAM curve (-g), if requested, is still fit on the whole series. 'trend_trim' only trims the series' true start/end, not an interior breakpoint (which is not a LOESS edge). Combine with 'vlines' (same dates/steps) to also mark the breakpoints on the plot.
+# % description: Date(s) (absolute-time strds) or time step(s) (relative-time strds) splitting the trend regression into separate segments, e.g. to report the slope before and after a known change rather than one slope that averages over it. Each value starts a new segment; the series' own start and end always count as the outer segment boundaries. Comma separated for multiple breakpoints. Only the OLS/Theil-Sen lines (-o/-s) are fit per segment; the GAM curve (-g), if requested, is still fit on the whole series. Combine with 'vlines' (same dates/steps) to also mark the breakpoints on the plot.
 # % multiple: yes
 # % required: no
 # % guisection: Trend line
@@ -485,7 +494,7 @@
 # % key: csv
 # % required: no
 # % label: Name output CSV file
-# % description: Optional CSV file with the observed, trend, seasonal and residual components per date.
+# % description: Optional CSV file with the observed, trend, seasonal and residual components per date for each dataset, and whether the value was interpolated. When 'breakpoints' is given, a second file with the trend statistics of each segment, one row per dataset and segment, is written alongside it, named after this file with suffix '_segment'.
 # % guisection: Output
 # %end
 
@@ -493,7 +502,7 @@
 # % key: vector
 # % required: no
 # % label: Name output point vector layer
-# % description: Optional name of a point vector layer to create at the selected location.
+# % description: Optional name of a point vector layer to create at the selected location, with one point per dataset and the whole-series trend statistics as attributes.
 # % guisection: Output
 # %end
 
@@ -518,7 +527,7 @@
 
 
 # %option G_OPT_M_NPROCS
-# % description: Number of parallel processes. For a point ('coordinates') this has no effect. For an area ('zone' or 'raster') it is forwarded to t.rast.univar's zonal extraction.
+# % description: Number of parallel processes.
 # %end
 
 # %option G_OPT_T_WHERE
@@ -549,13 +558,14 @@ from grass.script.utils import set_path
 if not callable(globals().get("_")):
     from gettext import gettext as _
 
-# extract.py/plot.py splits out function to reduce sice of main script.
-# trend.py is shared with t.rast.stl2ca via the trendlib library
-# of the t.rast.trend bundle. Each library module leaves its own
-# numpy/pandas/matplotlib/statsmodels/scipy names as None at import time
-# (set below, by lazy_import_py_modules(), once GRASS has parsed the
-# command line) so a plain module scan (--help, g.extension) never needs
-# the scientific stack installed.
+# plot.py, split out to reduce the size of the main script. trend.py,
+# series.py and plotstyle.py are shared with other tools in the
+# t.rast.trend bundle via the the trendlib library.
+# Each library module leaves its own numpy / pandas / matplotlib /
+# statsmodels/scipy names as None at import time (set below, by
+# lazy_import_py_modules(), once GRASS has parsed the command line)
+# so a plain module scan (--help, g.extension) does not require the
+# scientific stack to be installed.
 #
 # Derive the path from the script's location. set_path() is a fallback
 # for any layout that assumption does not hold.
@@ -567,34 +577,39 @@ if os.path.isdir(_lib_path):
 else:
     set_path("t.rast.stl")
 set_path(modulename="t.rast.trend", dirname="trendlib", path="..")
-import extract  # noqa: E402
 import plot  # noqa: E402
-from trendlib import trend  # noqa: E402
-from extract import (  # noqa: E402
+from trendlib import plotstyle, series, trend  # noqa: E402
+from trendlib.series import (  # noqa: E402
     clean_dirs,
     clean_rasters,
-    coords_from_option,
-    validate_zone,
-    make_zone_raster,
-    zone_bbox_center,
-    validate_raster,
-    make_raster_zone,
-    raster_bbox_center,
-    extract_series,
-    extract_zonal_series,
+    sampling_location,
+    sample_strds,
     build_series,
+    longest_gap,
     parse_temporal_outliers,
-    detect_temporal_outliers,
+    remove_temporal_outliers,
     regularize,
+    resolve_nprocs,
+    validate_frequency,
 )
 from trendlib.trend import (  # noqa: E402
     decompose_and_fit,
+    gs_step,
     require_pymannkendall,
+    segment_csv_path,
     write_csv,
     write_point_vector,
+    write_segments_csv,
     validate_odd_window,
 )
-from plot import apply_style, grass_color_to_mpl, plot_result, parse_vlines  # noqa: E402
+from trendlib.plotstyle import (  # noqa: E402
+    apply_style,
+    check_output_format,
+    check_plot_numbers,
+    parse_plot_dimensions,
+    parse_vlines,
+)
+from plot import grass_color_to_mpl, plot_result  # noqa: E402
 
 
 def cleanup():
@@ -611,12 +626,11 @@ def lazy_import_py_modules(backend="WXAgg"):
     """Lazy import of the third-party scientific stack.
 
     Imports numpy/pandas/statsmodels/scipy/matplotlib once the command line
-    has been parsed, and hands each to the library module(s) that use it --
-    extract.py/trend.py/plot.py each leave the name as None at import time
-    (see their module docstrings) until this runs. This is what keeps a
-    plain module scan (--help, g.extension) from ever needing the
-    scientific stack installed, now that it lives across four files instead
-    of one.
+    has been parsed, and hands each to the library module(s) that use it:
+    series.py/trend.py/plotstyle.py/plot.py each leave the name as None at
+    import time (see their module docstrings) until this runs. This is what
+    keeps a plain module scan (--help, g.extension) from ever needing the
+    scientific stack installed.
 
     :param str backend: matplotlib backend to activate before importing pyplot
     """
@@ -661,16 +675,17 @@ def lazy_import_py_modules(backend="WXAgg"):
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is required but not installed. Please install it."))
 
-    extract.np = np
-    extract.pd = pd
+    series.np = np
+    series.pd = pd
     trend.np = np
     trend.pd = pd
     trend.STL = STL
     trend.linregress = linregress
     trend.theilslopes = theilslopes
     trend.kendalltau = kendalltau
+    plotstyle.pd = pd
+    plotstyle.plt = plt
     plot.np = np
-    plot.pd = pd
     plot.mpl = mpl
     plot.plt = plt
 
@@ -702,8 +717,7 @@ def validate_options(options, flags, temporal_type):
     """
     # statistic=percentile needs an explicit percentile_value; the dispersion
     # band (-d) has no natural paired spread value outside mean/median, so it
-    # is restricted to those two statistics rather than silently showing a
-    # misleading band.
+    # is restricted to those two statistics.
     statistic = options["statistic"]
     if statistic == "percentile" and not options["percentile_value"]:
         gs.fatal(
@@ -731,6 +745,9 @@ def validate_options(options, flags, temporal_type):
         if options[key] and int(options[key]) < 1:
             gs.fatal(_("'{}' must be a positive integer.").format(key))
 
+    if options["max_gap"] and int(options["max_gap"]) < 0:
+        gs.fatal(_("'max_gap' must be zero or a positive integer."))
+
     # Spline/polynomial interpolation needs an explicit order.
     if options["interpolation"] in ("spline", "polynomial") and not options["order"]:
         gs.fatal(
@@ -753,26 +770,9 @@ def validate_options(options, flags, temporal_type):
         if int(options["step"]) <= 0:
             gs.fatal(_("The 'step' option must be a positive integer."))
 
-    # Absolute-time 'frequency', when given, must be a pandas offset alias
-    # (a unit, optionally with a multiplier), e.g. 'D', 'W', 'MS', '16D',
-    # '5YS'. A bare number has no unit and pandas rejects it with an opaque
-    # message. The below will catch it and give a clear message instead.
-    if temporal_type == "absolute" and options["frequency"]:
-        try:
-            # lazy_import_py_modules() (called before this) has already set
-            # extract.pd; validate_options() itself has no reason to import
-            # pandas again just for this one check.
-            extract.pd.tseries.frequencies.to_offset(options["frequency"])
-        except (ValueError, TypeError):
-            gs.fatal(
-                _(
-                    "The 'frequency' value '{v}' is not a valid pandas offset "
-                    "alias. It needs a time unit, optionally with a leading "
-                    "multiplier, e.g. 'D' (day), 'W' (week), 'MS' (month "
-                    "start), '16D' (16 days), 'YS' or '5YS' (year start). A "
-                    "bare number is not accepted."
-                ).format(v=options["frequency"])
-            )
+    # Absolute-time 'frequency', when given, must be a pandas offset alias.
+    if temporal_type == "absolute":
+        validate_frequency(options["frequency"])
 
     # temporal_outliers / temporal_outliers2, when given, must parse as
     # 'threshold,window'.
@@ -801,8 +801,7 @@ def validate_options(options, flags, temporal_type):
                     ).format(k=key, v=options[key])
                 )
 
-    # The GAM curve (-g) needs pygam. Check up front so the module fails
-    # fast here rather than after the expensive t.rast.what sampling.
+    # The GAM curve (-g) needs pygam. Check up front
     if flags.get("g"):
         if importlib.util.find_spec("pygam") is None:
             gs.fatal(
@@ -831,10 +830,11 @@ def main(options, flags):
     strds = options["strds"]
     strds2 = options["strds2"]
     where = options["where"]
-    nprocs = int(options["nprocs"]) if options["nprocs"] else 1
+    nprocs = resolve_nprocs(options["nprocs"])
     frequency = options["frequency"]
     interpolation = options["interpolation"]
     order = options["order"]
+    max_gap = int(options["max_gap"]) if options["max_gap"] else None
     step = options["step"]
     period_opt = options["period"]
     seasonal = options["seasonal"]
@@ -853,7 +853,8 @@ def main(options, flags):
     mk_test = options["mk_test"]
     csv = options["csv"]
     vector = options["vector"]
-    plot_dimensions = options["plot_dimensions"]
+    check_plot_numbers(options)
+    plot_dimensions = parse_plot_dimensions(options["plot_dimensions"])
     plots = [p for p in options["plots"].split(",") if p] if options["plots"] else []
     dpi = float(options["dpi"]) if options["dpi"] else 300
     envelope_percentile = None
@@ -886,35 +887,14 @@ def main(options, flags):
     else:
         backend = "WXAgg"
     lazy_import_py_modules(backend=backend)
+    if output:
+        check_output_format(output)
     apply_style(options["style"])
 
     # Get the sampling location: either a point, or a zone rasterized from a
     # vector map, or a zone taken from a raster's non-null cells (all pooled
     # into a single zone).
-    zone_raster = None
-    if zone:
-        validate_zone(zone)
-        zone_raster = make_zone_raster(zone)
-        east, north = zone_bbox_center(zone)
-        gs.message(
-            _(
-                "Using zone '{}' ({} statistic; bbox center for tagging: "
-                "east={}, north={})."
-            ).format(zone, statistic, east, north)
-        )
-    elif raster:
-        validate_raster(raster)
-        zone_raster = make_raster_zone(raster)
-        east, north = raster_bbox_center(raster)
-        gs.message(
-            _(
-                "Using raster '{}' non-null cells ({} statistic; bbox center "
-                "for tagging: east={}, north={})."
-            ).format(raster, statistic, east, north)
-        )
-    else:
-        east, north = coords_from_option(coordinates)
-        gs.message(_("Using point (east, north) = ({}, {})").format(east, north))
+    zone_raster, east, north = sampling_location(coordinates, zone, raster, statistic)
 
     # Check if the strds exists and read its temporal type.
     try:
@@ -927,8 +907,7 @@ def main(options, flags):
     validate_options(options, flags, temporal_type)
 
     # Vertical reference lines (dates for absolute time, time steps for
-    # relative time), parsed here (after the temporal type is known) so a bad
-    # value is caught before the expensive sampling step below.
+    # relative time), parsed here (after the temporal type is known)
     vlines = parse_vlines(options["vlines"], options["vlines_labels"], temporal_type)
 
     # Build the list of datasets to analyze. The second strds is optional
@@ -968,41 +947,33 @@ def main(options, flags):
     bands = []
     envelopes = []
     excluded_points = []
+    csv_datasets = []
     for index, (ds_name, ds_tinfo) in enumerate(datasets):
         label = (strds2 and ds_name) or None
         if zone_raster:
             if index == 0:
-                gs.message(_("Extracting the zonal time series..."))
+                gs_step(_("Extracting the zonal time series..."))
             else:
-                gs.message(
+                gs_step(
                     _("Extracting the zonal time series for '{}'...").format(ds_name)
                 )
-            ds_dates, ds_values, ds_lower, ds_upper, ds_pixel_counts = (
-                extract_zonal_series(
-                    strds=ds_name,
-                    zone_raster=zone_raster,
-                    where=where,
-                    statistic=statistic,
-                    nprocs=nprocs,
-                    want_dispersion=show_dispersion,
-                    percentile_value=percentile_value,
-                )
-            )
+        elif index == 0:
+            gs_step(_("Extracting the point time series..."))
         else:
-            if index == 0:
-                gs.message(_("Extracting the point time series..."))
-            else:
-                gs.message(
-                    _("Extracting the point time series for '{}'...").format(ds_name)
-                )
-            ds_dates, ds_values = extract_series(
-                strds=ds_name,
-                east=east,
-                north=north,
-                where=where,
-                nprocs=nprocs,
+            gs_step(
+                _("Extracting the point time series for '{}'...").format(ds_name)
             )
-            ds_lower = ds_upper = ds_pixel_counts = None
+        ds_dates, ds_values, ds_lower, ds_upper, ds_pixel_counts = sample_strds(
+            strds=ds_name,
+            zone_raster=zone_raster,
+            east=east,
+            north=north,
+            where=where,
+            statistic=statistic,
+            nprocs=nprocs,
+            want_dispersion=show_dispersion,
+            percentile_value=percentile_value,
+        )
 
         ds_series = build_series(ds_dates, ds_values, temporal_type=temporal_type)
         n_valid = int(ds_series.notna().sum())
@@ -1022,37 +993,15 @@ def main(options, flags):
         outliers_key = "temporal_outliers" if index == 0 else "temporal_outliers2"
         ds_outliers = parse_temporal_outliers(options[outliers_key], outliers_key)
         if ds_outliers is not None:
-            ds_threshold, ds_window = ds_outliers
-            ds_series, ds_excluded = detect_temporal_outliers(
-                ds_series, ds_threshold, ds_window, temporal_type=temporal_type
+            ds_series, ds_excluded = remove_temporal_outliers(
+                ds_series, *ds_outliers, temporal_type=temporal_type, name=ds_name
             )
         else:
             ds_excluded = ds_series.iloc[0:0]
-        if len(ds_excluded):
-            gs.message(
-                _(
-                    "Flagged {n} value(s) in '{d}' as transient temporal "
-                    "outliers (threshold={t}, window={w}); linearly "
-                    "interpolated."
-                ).format(n=len(ds_excluded), d=ds_name, t=ds_threshold, w=ds_window)
-            )
-            # Fill just these dates with linear interpolation now, ahead of
-            # the 'interpolation' method below. An excursion can span many
-            # steps (up to 'window'), and a curvature-fitting method
-            # (quadratic, cubic, spline...) bridging a gap that wide can
-            # overshoot past either neighbour, undoing the whole point of
-            # excluding the outlier by replacing it with a different,
-            # possibly larger artifact. Linear is bounded by its two
-            # neighbours and cannot do that. Genuine gaps (still NaN here)
-            # are left for the chosen 'interpolation' method, unchanged.
-            linear_filled = ds_series.interpolate(
-                method="linear", limit_direction="both"
-            )
-            ds_series.loc[ds_excluded.index] = linear_filled.loc[ds_excluded.index]
         excluded_points.append(ds_excluded)
 
-        gs.message(_("Regularizing the series and interpolating gaps..."))
-        ds_regular = regularize(
+        gs_step(_("Regularizing the series and interpolating gaps..."))
+        ds_regular, ds_interpolated = regularize(
             series=ds_series,
             frequency=frequency,
             method=interpolation,
@@ -1060,6 +1009,8 @@ def main(options, flags):
             temporal_type=temporal_type,
             step=step,
             tinfo=ds_tinfo,
+            max_gap=max_gap,
+            name=ds_name,
         )
 
         # The dispersion band (if any) is observed-panel annotation only; it
@@ -1083,10 +1034,9 @@ def main(options, flags):
                 ds_upper_series = ds_upper_series.mask(excluded_dates)
             if min_pixels is not None and ds_pixel_counts is not None:
                 # A spread computed from very few pixels is a poor estimate
-                # and can spike far past the genuine spread -- typically a
-                # near-total-cloud timestep where only a handful of pixels
-                # survive -- even though the mean/median itself (and so
-                # temporal_outliers, which only watches that) looks normal.
+                # and can spike far past the genuine spread, even though
+                # the mean/median itself (and so temporal_outliers,
+                # which only watches that) looks normal.
                 ds_count_series = build_series(
                     ds_dates, ds_pixel_counts, temporal_type=temporal_type
                 )
@@ -1105,9 +1055,7 @@ def main(options, flags):
             # curvature-fitting method (quadratic, cubic, spline...) can
             # overshoot past either neighbour when bridging a gap, which for
             # a dispersion band means manufacturing a bulge wider than the
-            # genuine spread on either side -- most visibly across the
-            # multi-step spans temporal_outliers excludes. Linear is bounded
-            # by its two neighbours and cannot do that.
+            # genuine spread on either side.
             ds_band_lower = regularize(
                 series=ds_lower_series,
                 frequency=frequency,
@@ -1117,7 +1065,7 @@ def main(options, flags):
                 step=step,
                 tinfo=ds_tinfo,
                 report=False,
-            )
+            )[0].reindex(ds_regular.index)
             ds_band_upper = regularize(
                 series=ds_upper_series,
                 frequency=frequency,
@@ -1127,7 +1075,7 @@ def main(options, flags):
                 step=step,
                 tinfo=ds_tinfo,
                 report=False,
-            )
+            )[0].reindex(ds_regular.index)
         bands.append((ds_band_lower, ds_band_upper))
 
         (
@@ -1154,8 +1102,20 @@ def main(options, flags):
             envelope_percentile=envelope_percentile,
             breakpoints_opt=breakpoints_opt,
             mk_test=mk_test,
+            longest_gap=longest_gap(ds_interpolated),
         )
         results.append((ds_result, ds_trend_fit, ds_trend_fit_segments))
+        csv_datasets.append(
+            {
+                "name": ds_name,
+                "result": ds_result,
+                "interpolated": ds_interpolated,
+                "band_lower": ds_band_lower,
+                "band_upper": ds_band_upper,
+                "envelope_lower": ds_envelope_lower,
+                "envelope_upper": ds_envelope_upper,
+            }
+        )
         envelopes.append((ds_envelope_lower, ds_envelope_upper))
 
     result, trend_fit, trend_fit_segments = results[0]
@@ -1177,27 +1137,37 @@ def main(options, flags):
         excluded = excluded_points[0]
         excluded2 = excluded_points[1] if len(excluded_points) > 1 else None
 
-    # Write CSV if requested
+    names = [ds_name for ds_name, _ds_tinfo in datasets]
     if csv:
         write_csv(
-            result,
+            csv_datasets,
             csv,
             temporal_type=temporal_type,
-            band_lower=band_lower,
-            band_upper=band_upper,
             statistic=statistic if zone_raster else None,
-            envelope_lower=envelope_lower,
-            envelope_upper=envelope_upper,
+        )
+    if csv and breakpoints_opt:
+        write_segments_csv(
+            [
+                (ds_name, ds_result.trend.index, ds_segments)
+                for ds_name, (ds_result, _ds_fit, ds_segments) in zip(names, results)
+            ],
+            segment_csv_path(csv),
+        )
+    if vector:
+        write_point_vector(
+            vector,
+            east,
+            north,
+            [
+                (ds_name, ds_fit)
+                for ds_name, (_ds_result, ds_fit, _ds_segments) in zip(names, results)
+            ],
         )
 
-    # Create point vector layer if requested.
-    if vector:
-        write_point_vector(vector, east, north, trend_fit=trend_fit)
-
     # Plot (save-by-extension or show).
-    gs.message(_("Creating the figure..."))
+    gs_step(_("Creating the figure..."))
     if plot_dimensions:
-        dimensions = [float(x) for x in plot_dimensions.split(",")]
+        dimensions = plot_dimensions
     else:
         # Default height scales with the number of panels (2 inches each), so
         # the full four-panel figure stays 8x8 while smaller selections are not
